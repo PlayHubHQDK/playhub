@@ -163,6 +163,10 @@ const DICT = {
       "Dit Steam-bibliotek ser tomt ud. Hvis du ejer spil, er din Steam-profils “Spiloplysninger” formentlig ikke sat til Offentlig.",
     "Open Steam privacy settings": "Åbn Steams privatlivsindstillinger",
 
+    // Update banner
+    "New version available: {0} (you have {1})": "Ny version tilgængelig: {0} (du har {1})",
+    "See what's new ↗": "Se nyhederne ↗",
+
     // Setup wizard
     "Welcome to PlayHub": "Velkommen til PlayHub",
     "Language": "Sprog",

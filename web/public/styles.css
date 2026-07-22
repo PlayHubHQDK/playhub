@@ -846,6 +846,27 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .setup-result.err { background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--red); }
 .setup-avatar { width: 34px; height: 34px; border-radius: 8px; }
 
+/* Update banner */
+.update-banner {
+  background: rgba(102, 224, 255, 0.08);
+  border: 1px solid rgba(102, 224, 255, 0.35);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.update-banner a { color: var(--accent); }
+.update-dismiss {
+  margin-left: auto;
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 0.9rem;
+}
+
 /* Toast */
 .toast {
   position: fixed;

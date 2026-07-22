@@ -41,6 +41,7 @@ import {
 import { recommend, buildGenreProfile } from "./lib/recommend.js";
 import { discover } from "./lib/discover.js";
 import { getDeals } from "./lib/deals.js";
+import { getVersionInfo } from "./lib/version.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -119,6 +120,13 @@ app.post(
       saveAppConfig().catch(() => {});
     }
     res.json({ ok: true });
+  })
+);
+
+app.get(
+  "/api/version",
+  wrap(async (req, res) => {
+    res.json(await getVersionInfo());
   })
 );
 

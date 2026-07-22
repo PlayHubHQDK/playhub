@@ -906,6 +906,21 @@ function renderStats(games) {
   }
 }
 
+// --- Update banner ---
+async function checkForUpdate() {
+  try {
+    const v = await api("/api/version");
+    if (!v.update_available) return;
+    const banner = document.createElement("div");
+    banner.className = "update-banner";
+    banner.innerHTML = `${t("New version available: {0} (you have {1})", "v" + v.latest, "v" + v.current)} <a href="${v.releases_url}" target="_blank" rel="noopener">${t("See what's new ↗")}</a> <button class="update-dismiss" aria-label="Dismiss">✕</button>`;
+    banner.querySelector(".update-dismiss").addEventListener("click", () => banner.remove());
+    document.querySelector("main").prepend(banner);
+  } catch {
+    /* stille */
+  }
+}
+
 // --- First-run setup wizard ---
 function showSetupWizard() {
   const overlay = $("#setup-overlay");
@@ -1049,6 +1064,7 @@ function showSetupWizard() {
   loadLibrary();
   loadNative();
   loadCrossover();
+  checkForUpdate();
   // Deep-link til fane via #hash (fx /#crossover)
   const hashTab = location.hash.slice(1);
   if (hashTab) {
