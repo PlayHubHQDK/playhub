@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PlayHub — the local game hub for Mac</title>
+<meta name="description" content="Free, open-source dashboard for Mac gaming: Steam library, CrossOver D3DMetal shader-cache backup, compatibility badges, stats and price comparison. Runs 100% locally." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+<style>
+  :root {
+    --bg: #0b0e14; --bg-2: #121622; --panel: #161b2b; --panel-2: #1c2336;
+    --border: #263049; --text: #e6ecf7; --muted: #8a97b4;
+    --accent: #66e0ff; --accent-2: #a06bff; --green: #4ade80; --amber: #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(1400px 700px at 75% -10%, #1a2138 0%, var(--bg) 55%);
+    color: var(--text); line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 1.4rem; }
+
+  /* Hero */
+  header { padding: 4.5rem 0 3rem; text-align: center; }
+  .logo-row { font-size: 3rem; filter: drop-shadow(0 0 14px var(--accent)); }
+  h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: 0.5px; margin: 0.4rem 0; }
+  h1 span { color: var(--accent); }
+  .tagline { font-size: 1.2rem; color: var(--muted); max-width: 640px; margin: 0.6rem auto 0; }
+  .trust { color: var(--green); font-size: 0.92rem; font-weight: 600; margin-top: 0.9rem; }
+  .cta-row { display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap; margin-top: 1.8rem; }
+  .btn {
+    display: inline-block; padding: 0.85rem 1.7rem; border-radius: 14px;
+    font-weight: 800; font-size: 1rem; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-2px); text-decoration: none; }
+  .btn.primary { background: linear-gradient(120deg, var(--accent), #37c5ff); color: #041016; box-shadow: 0 0 26px rgba(102,224,255,0.35); }
+  .btn.secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+  .hero-shot { margin: 3rem auto 0; max-width: 1000px; }
+  .hero-shot img {
+    width: 100%; border-radius: 16px; border: 1px solid var(--border);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+  }
+
+  /* Sections */
+  section { padding: 3.2rem 0; }
+  h2 { font-size: 1.7rem; margin-bottom: 1.4rem; text-align: center; }
+  h2 .hl { color: var(--accent); }
+
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.1rem; }
+  .feature {
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem 1.4rem;
+  }
+  .feature.hero-feature { border-color: rgba(102,224,255,0.45); box-shadow: 0 0 22px rgba(102,224,255,0.10); }
+  .feature .emoji { font-size: 1.6rem; }
+  .feature h3 { margin: 0.5rem 0 0.4rem; font-size: 1.05rem; }
+  .feature p { color: var(--muted); font-size: 0.92rem; }
+
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+  .shots img { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+  @media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
+
+  .install-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.6rem 1.8rem; max-width: 720px; margin: 0 auto;
+  }
+  .install-card ol { padding-left: 1.2rem; color: var(--muted); }
+  .install-card li { margin-bottom: 0.5rem; }
+  pre {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1rem 1.2rem; overflow-x: auto; font-size: 0.92rem; margin: 0.8rem 0;
+    color: var(--green); font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .req { color: var(--muted); font-size: 0.85rem; margin-top: 0.8rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; max-width: 760px; margin: 0 auto; }
+  th, td { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 1px; }
+  td:first-child { font-family: ui-monospace, monospace; font-size: 0.82rem; color: var(--accent); }
+  .privacy-note { text-align: center; color: var(--green); font-weight: 700; margin-top: 1.1rem; }
+
+  details {
+    max-width: 760px; margin: 0 auto 0.7rem; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1.2rem;
+  }
+  summary { cursor: pointer; font-weight: 700; }
+  details p { color: var(--muted); margin-top: 0.6rem; font-size: 0.93rem; }
+
+  footer { padding: 3rem 0 3.5rem; text-align: center; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+  footer a { color: var(--muted); text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="logo-row">🎮</div>
+  <h1>Play<span>Hub</span></h1>
+  <p class="tagline">The local game hub for Mac. Your Steam library, CrossOver shader-cache backup, "will it run?" answers, stats and prices — in one dark, fast dashboard.</p>
+  <p class="trust">Free · Open source (MIT) · Runs 100% on your Mac · No accounts, no telemetry</p>
+  <div class="cta-row">
+    <a class="btn primary" href="https://github.com/PlayHubHQDK/playhub/releases/latest">⬇ Download (latest release)</a>
+    <a class="btn secondary" href="https://github.com/PlayHubHQDK/playhub">View source on GitHub</a>
+  </div>
+  <div class="hero-shot"><img src="img/library.png" alt="PlayHub Steam library with platform badges and playtime" /></div>
+</header>
+
+<section class="wrap" id="features">
+  <h2>Everything a Mac gamer juggles — <span class="hl">one place</span></h2>
+  <div class="features">
+    <div class="feature hero-feature">
+      <div class="emoji">🛡️</div>
+      <h3>Never recompile shaders again</h3>
+      <p>CrossOver's D3DMetal compiles shaders for minutes on first launch — and macOS can wipe that cache anytime. PlayHub finds every cache, maps it to the right game and bottle, auto-backs it up when compilation settles, and restores byte-for-byte. <strong>The feature nothing else has.</strong></p>
+    </div>
+    <div class="feature">
+      <div class="emoji">🍷</div>
+      <h3>"Will it run?" answered</h3>
+      <p>Every game in your library is badged: native Mac, or a CrossOver compatibility rating (Perfect / Playable / Runs / Broken) from AppleGamingWiki community data.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">🎮</div>
+      <h3>One library, one click</h3>
+      <p>All your Steam games with covers and playtime. Launch native games via Steam or Windows games straight into the correct CrossOver bottle.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">📊</div>
+      <h3>Stats & achievements</h3>
+      <p>Total playtime, top-10 charts, achievement progress, Steam review levels, Metacritic and HowLongToBeat — per game, one click away.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">✨</div>
+      <h3>Play what you already own</h3>
+      <p>A recommendation engine profiles your taste from playtime and surfaces the best-reviewed games sitting unplayed in your own library.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">💰</div>
+      <h3>Buy smarter</h3>
+      <p>Wishlist-worthy games matched to your taste with live prices across Steam, Humble, Fanatical, GMG and GOG (via IsThereAnyDeal).</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>See it</h2>
+  <div class="shots">
+    <img src="img/crossover.png" alt="CrossOver Tools tab with D3DMetal shader caches and backups" />
+    <img src="img/stats.png" alt="Playtime statistics dashboard" />
+  </div>
+</section>
+
+<section class="wrap" id="install">
+  <h2>Install in <span class="hl">two minutes</span></h2>
+  <div class="install-card">
+    <pre>git clone https://github.com/PlayHubHQDK/playhub.git
+cd playhub
+./install.sh</pre>
+    <ol>
+      <li>Open <strong>http://127.0.0.1:4173</strong> (or double-click <strong>PlayHub</strong> on your Desktop)</li>
+      <li>The first-run wizard asks for your free <a href="https://steamcommunity.com/dev/apikey">Steam Web API key</a> — with live validation</li>
+      <li>That's it. PlayHub starts at login and keeps itself running.</li>
+    </ol>
+    <p class="req">Requires macOS + <a href="https://nodejs.org">Node.js 18+</a> (<code>brew install node</code>). CrossOver features need <a href="https://www.codeweavers.com/crossover">CrossOver</a> on Apple Silicon. Uninstall completely anytime with <code>./uninstall.sh</code>.</p>
+  </div>
+</section>
+
+<section class="wrap" id="privacy">
+  <h2>Privacy, in full</h2>
+  <table>
+    <tr><th>Service</th><th>Purpose</th><th>When</th></tr>
+    <tr><td>api.steampowered.com</td><td>Your library, playtime, achievements</td><td>Always (your own key)</td></tr>
+    <tr><td>Steam CDN / store API</td><td>Covers, review levels, Metacritic, genres</td><td>Background enrichment</td></tr>
+    <tr><td>applegamingwiki.com</td><td>CrossOver compatibility ratings</td><td>Windows-only games</td></tr>
+    <tr><td>steamspy.com</td><td>Popularity lists for Buy Ideas</td><td>Buy Ideas tab</td></tr>
+    <tr><td>api.isthereanydeal.com</td><td>Cross-store prices</td><td>Only with your free ITAD key</td></tr>
+    <tr><td>howlongtobeat.com</td><td>Completion times</td><td>Game detail view</td></tr>
+  </table>
+  <p class="privacy-note">That's the complete list. Nothing else leaves your machine. Ever.</p>
+</section>
+
+<section class="wrap" id="faq">
+  <h2>FAQ</h2>
+  <details>
+    <summary>Why should I trust it with my Steam API key?</summary>
+    <p>Don't trust — verify. It's a few thousand lines of readable JavaScript with no build step, MIT-licensed. The key lives in a local <code>.env</code> file and is only ever sent to Valve's own API. Grep the source for <code>fetch(</code> to see every outbound call.</p>
+  </details>
+  <details>
+    <summary>Why isn't it a signed Mac app?</summary>
+    <p>Apple's developer program costs $99/year. If PlayHub gets real traction, a signed and notarized app is the first milestone. Until then, the installer is a readable shell script — and <code>./uninstall.sh</code> removes every trace.</p>
+  </details>
+  <details>
+    <summary>Doesn't Whisky / Heroic / CrossOver already do this?</summary>
+    <p>Those tools <em>run</em> games. PlayHub is the layer on top: one library overview, compatibility answers, stats — and the only tool we know of that backs up D3DMetal shader caches.</p>
+  </details>
+  <details>
+    <summary>Does it work on Intel Macs?</summary>
+    <p>The library, stats and recommendation features do. D3DMetal (and shader-cache backup) requires Apple Silicon.</p>
+  </details>
+  <details>
+    <summary>Are the store links affiliated?</summary>
+    <p>Currently no. The code has clearly-disclosed affiliate slots that may be enabled in the future — links will always be marked, and Steam links are never affiliated (Valve has no affiliate program).</p>
+  </details>
+</section>
+
+<footer>
+  <div class="wrap">
+    PlayHub · <a href="https://github.com/PlayHubHQDK/playhub/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/PlayHubHQDK/playhub">GitHub</a> · <a href="https://github.com/PlayHubHQDK/playhub/issues">Report a bug</a><br />
+    Compatibility data from <a href="https://www.applegamingwiki.com">AppleGamingWiki</a> (CC BY-NC-SA). Not affiliated with Valve, CodeWeavers or Apple.
+  </div>
+</footer>
+
+</body>
+</html>
