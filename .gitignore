@@ -1,0 +1,21 @@
+# Environment / secrets
+.env
+*.env
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+
+# Shader-cache backups produced by the web UI
+web/backups/
+
+# Artwork lookup cache
+web/cache/
+
+# Local Claude Code settings
+.claude/

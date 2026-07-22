@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PlayHub</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">🎮</span>
+        <h1>Play<span>Hub</span></h1>
+      </div>
+      <nav class="tabs">
+        <button class="tab active" data-target="library" data-i18n>Steam Library</button>
+        <button class="tab" data-target="native" data-i18n>Native Mac</button>
+        <button class="tab" data-target="crossover" data-i18n>CrossOver</button>
+        <button class="tab" data-target="stats" data-i18n>Stats</button>
+        <button class="tab" data-target="recs" data-i18n>For You</button>
+        <button class="tab" data-target="discover" data-i18n>Buy Ideas</button>
+        <button class="tab" data-target="xbox" data-i18n>Xbox</button>
+      </nav>
+      <select id="lang-select" class="lang-select" title="Language"></select>
+    </header>
+
+    <main>
+      <!-- STEAM LIBRARY -->
+      <section id="library" class="panel active">
+        <div class="panel-head">
+          <h2 data-i18n>Steam Library</h2>
+          <div class="panel-meta">
+            <button class="filter-chip active" data-filter="all" data-i18n>All</button>
+            <button class="filter-chip" data-filter="installed" data-i18n>Installed</button>
+            <input id="library-search" type="search" placeholder="Search library…" data-i18n-placeholder />
+            <span id="library-count" class="badge">—</span>
+          </div>
+        </div>
+        <div id="recent-section" hidden>
+          <h3 class="subhead" data-i18n>🔥 Recently played (last 2 weeks)</h3>
+          <div id="recent-row" class="recent-row"></div>
+          <h3 class="subhead" data-i18n>Full library</h3>
+        </div>
+        <div id="library-grid" class="grid covers">
+          <div class="loading" data-i18n>Fetching achievements…</div>
+        </div>
+      </section>
+
+      <!-- NATIVE MAC GAMES -->
+      <section id="native" class="panel">
+        <div class="panel-head"><h2 data-i18n>Native Mac games</h2></div>
+        <h3 class="subhead" data-i18n>Installed via Steam</h3>
+        <div id="native-steam" class="grid cards">
+          <div class="loading">…</div>
+        </div>
+        <h3 class="subhead" data-i18n>Apps in /Applications (game category)</h3>
+        <div id="native-apps" class="grid cards">
+          <div class="loading">…</div>
+        </div>
+      </section>
+
+      <!-- CROSSOVER -->
+      <section id="crossover" class="panel">
+        <div class="panel-head">
+          <h2 data-i18n>CrossOver bottles</h2>
+          <span id="crossover-root" class="path-hint"></span>
+        </div>
+        <div id="autobackup-status" class="autobackup-status"></div>
+        <div id="crossover-list">
+          <div class="loading">…</div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section id="stats" class="panel">
+        <div class="panel-head"><h2 data-i18n>Playtime stats</h2></div>
+        <div id="stats-tiles" class="stat-tiles">
+          <div class="loading" data-i18n>Calculating…</div>
+        </div>
+        <div class="chart-card">
+          <h3 data-i18n>Top 10 most played</h3>
+          <div id="chart-top10" class="hbar-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3 data-i18n>Football Manager through the years</h3>
+          <div id="chart-fm" class="vbar-chart"></div>
+        </div>
+        <details class="stats-table">
+          <summary data-i18n>Show as table (top 20)</summary>
+          <table id="stats-table"></table>
+        </details>
+      </section>
+
+      <!-- FOR YOU -->
+      <section id="recs" class="panel">
+        <div class="panel-head">
+          <h2 data-i18n>Recommendations from your own library</h2>
+          <button id="recs-reload" class="btn" data-i18n>↻ Refresh</button>
+        </div>
+        <div id="recs-status" class="autobackup-status" hidden></div>
+        <div id="recs-profile" class="recs-profile"></div>
+        <div id="recs-grid" class="grid cards recs-grid">
+          <div class="loading" data-i18n>Computing recommendations…</div>
+        </div>
+      </section>
+
+      <!-- BUY IDEAS -->
+      <section id="discover" class="panel">
+        <div class="panel-head">
+          <h2 data-i18n>Buy ideas — games you don't own yet</h2>
+          <button id="discover-reload" class="btn" data-i18n>↻ Refresh</button>
+        </div>
+        <p class="discover-note" data-i18n>Popular, well-reviewed games matched to your taste profile. Prices load progressively (Steam bills in € in Denmark) — press ↻ if some are missing.</p>
+        <div id="discover-grid" class="grid cards recs-grid">
+          <div class="loading" data-i18n>Finding buy ideas… (first time takes ~15 s)</div>
+        </div>
+      </section>
+
+      <!-- XBOX -->
+      <section id="xbox" class="panel">
+        <div class="panel-head"><h2>Xbox</h2></div>
+        <div class="grid cards xbox-cards">
+          <a class="xbox-card" href="https://www.xbox.com/play" target="_blank" rel="noopener">
+            <div class="xbox-icon">☁️</div>
+            <h3>Xbox Cloud Gaming</h3>
+            <p data-i18n>Stream Game Pass games directly in the browser.</p>
+            <span class="go">xbox.com/play →</span>
+          </a>
+          <a class="xbox-card" href="https://www.xbox.com/play/remote-play" target="_blank" rel="noopener">
+            <div class="xbox-icon">🎮</div>
+            <h3>Xbox Remote Play</h3>
+            <p data-i18n>Remote play from your own Xbox console.</p>
+            <span class="go">Remote Play →</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- Achievements modal -->
+    <div id="ach-modal" class="modal-backdrop" hidden>
+      <div class="modal">
+        <div class="modal-head">
+          <h3 id="ach-title">—</h3>
+          <button id="ach-close" class="btn" aria-label="Close">✕</button>
+        </div>
+        <div id="ach-progress" class="ach-progress" hidden>
+          <div class="ach-bar"><div id="ach-bar-fill" class="ach-bar-fill"></div></div>
+          <span id="ach-pct" class="ach-pct"></span>
+        </div>
+        <div id="ach-meta" class="ach-meta" hidden></div>
+        <div id="hltb-box" class="hltb-box" hidden></div>
+        <div id="ach-body" class="modal-body">
+          <div class="loading" data-i18n>Fetching achievements…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- First-run setup wizard -->
+    <div id="setup-overlay" class="modal-backdrop" hidden></div>
+
+    <div id="toast" class="toast"></div>
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
