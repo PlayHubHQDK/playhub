@@ -74,6 +74,7 @@ async function fetchDetails(appid) {
   const d = j?.[appid];
   if (!d?.success || !d.data) return { missing: true };
   return {
+    mac_native: Boolean(d.data.platforms?.mac),
     metacritic: d.data.metacritic?.score ?? null,
     metacritic_url: d.data.metacritic?.url || null,
     genres: (d.data.genres || []).map((g) => g.description),
@@ -119,7 +120,11 @@ async function runQueue() {
     // Pass 2: appdetails (metacritic + genrer)
     for (const id of queue) {
       const e = entry(id);
-      if (e.details && now - (e.details_at || 0) < DETAILS_TTL) {
+      if (
+        e.details &&
+        now - (e.details_at || 0) < DETAILS_TTL &&
+        (e.details.missing || e.details.mac_native !== undefined)
+      ) {
         status.details_done++;
         continue;
       }

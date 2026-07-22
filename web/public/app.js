@@ -169,6 +169,10 @@ function renderLibrary(games) {
   const grid = $("#library-grid");
   if (libraryFilter === "installed") {
     games = games.filter((g) => g.installed_on);
+  } else if (libraryFilter === "native") {
+    games = games.filter((g) => g.mac_native === true);
+  } else if (libraryFilter === "windows") {
+    games = games.filter((g) => g.mac_native === false);
   }
   if (!games.length) {
     grid.innerHTML = `<div class="empty">${t("No games match.")}</div>`;
@@ -202,11 +206,35 @@ function renderLibrary(games) {
           <span class="playtime ${zero ? "zero" : ""}">⏱ ${fmtHours(
         g.playtime_forever_hours
       )}</span>
+          ${platformChip(g)}
           ${cacheChip(g)}
         </div>
       </div>`;
     })
     .join("");
+}
+
+// Platform/kompatibilitets-chip:  native eller 🍷 CrossOver-rating.
+const RATING_LABEL = {
+  perfect: "Perfect",
+  playable: "Playable",
+  runs: "Runs with issues",
+  broken: "Doesn't work",
+  unknown: "Unknown",
+};
+function platformChip(g) {
+  if (g.mac_native === true) {
+    return `<span class="platform-chip native" title="${t("Runs natively on macOS")}"> Mac</span>`;
+  }
+  if (g.mac_native === false) {
+    const r = g.crossover_rating || "unknown";
+    const label = t(RATING_LABEL[r] || "Unknown");
+    return `<span class="platform-chip xo rating-${r}" title="${t(
+      "CrossOver compatibility: {0} (community data from AppleGamingWiki)",
+      label
+    )}">🍷 ${label}</span>`;
+  }
+  return ""; // ukendt endnu (berigelse i gang)
 }
 
 // Shader-cache chip for CrossOver games.

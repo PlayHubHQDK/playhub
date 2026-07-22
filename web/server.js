@@ -42,6 +42,7 @@ import { recommend, buildGenreProfile } from "./lib/recommend.js";
 import { discover } from "./lib/discover.js";
 import { getDeals } from "./lib/deals.js";
 import { getVersionInfo } from "./lib/version.js";
+import { getCompatCached, enqueueCompat } from "./lib/maccompat.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -173,8 +174,19 @@ app.get(
     // Kick off (or refresh) background store-metadata enrichment,
     // and attach whatever metadata is already cached.
     enqueueEnrichment(data.games.map((g) => g.appid));
+    const windowsOnly = [];
     for (const g of data.games) {
       const meta = getMeta(g.appid);
+      // Platform + CrossOver-kompatibilitet
+      g.mac_native = meta?.mac_native ?? null; // null = ikke beriget endnu
+      if (g.mac_native === false) {
+        windowsOnly.push(g.name);
+        const compat = getCompatCached(g.name);
+        if (compat) {
+          g.crossover_rating = compat.rating;
+          g.crossover_url = compat.url;
+        }
+      }
       if (meta?.review_score_desc) {
         g.review_score_desc = meta.review_score_desc;
         g.review_score_desc_da =
@@ -185,6 +197,7 @@ app.get(
         g.metacritic = meta.metacritic ?? null;
       }
     }
+    enqueueCompat(windowsOnly);
     // Installed games first, then by playtime within each group.
     data.games.sort((a, b) => {
       const ai = a.installed_on ? 0 : 1;

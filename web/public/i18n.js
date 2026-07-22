@@ -163,6 +163,18 @@ const DICT = {
       "Dit Steam-bibliotek ser tomt ud. Hvis du ejer spil, er din Steam-profils “Spiloplysninger” formentlig ikke sat til Offentlig.",
     "Open Steam privacy settings": "Åbn Steams privatlivsindstillinger",
 
+    // Platform & CrossOver-kompatibilitet
+    " Mac native": " Mac-native",
+    "🍷 CrossOver": "🍷 CrossOver",
+    "Runs natively on macOS": "Kører native på macOS",
+    "CrossOver compatibility: {0} (community data from AppleGamingWiki)":
+      "CrossOver-kompatibilitet: {0} (community-data fra AppleGamingWiki)",
+    "Perfect": "Perfekt",
+    "Playable": "Spilbart",
+    "Runs with issues": "Kører med problemer",
+    "Doesn't work": "Virker ikke",
+    "Unknown": "Ukendt",
+
     // Update banner
     "New version available: {0} (you have {1})": "Ny version tilgængelig: {0} (du har {1})",
     "See what's new ↗": "Se nyhederne ↗",
