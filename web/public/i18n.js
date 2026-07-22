@@ -8,13 +8,13 @@ const DICT = {
   da: {
     // Tabs & panel titles
     "Steam Library": "Steam-bibliotek",
-    "Native Mac": "Native Mac",
-    "CrossOver": "CrossOver",
+    "On This Mac": "På denne Mac",
+    "CrossOver Tools": "CrossOver-værktøjer",
     "Stats": "Statistik",
     "For You": "Anbefalinger",
     "Buy Ideas": "Køb-idéer",
     "Xbox": "Xbox",
-    "Native Mac games": "Native Mac-spil",
+    "Games on this Mac": "Spil på denne Mac",
     "CrossOver bottles": "CrossOver-bottles",
     "Playtime stats": "Spilletids-statistik",
     "Recommendations from your own library": "Anbefalinger fra dit eget bibliotek",
@@ -165,7 +165,7 @@ const DICT = {
 
     // Platform & CrossOver-kompatibilitet
     " Mac native": " Mac-native",
-    "🍷 CrossOver": "🍷 CrossOver",
+    "🍷 Needs CrossOver": "🍷 Kræver CrossOver",
     "Runs natively on macOS": "Kører native på macOS",
     "CrossOver compatibility: {0} (community data from AppleGamingWiki)":
       "CrossOver-kompatibilitet: {0} (community-data fra AppleGamingWiki)",
