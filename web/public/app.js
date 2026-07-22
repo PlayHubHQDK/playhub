@@ -1049,4 +1049,10 @@ function showSetupWizard() {
   loadLibrary();
   loadNative();
   loadCrossover();
+  // Deep-link til fane via #hash (fx /#crossover)
+  const hashTab = location.hash.slice(1);
+  if (hashTab) {
+    const tab = document.querySelector(`.tab[data-target="${hashTab}"]`);
+    if (tab) tab.click();
+  }
 })();

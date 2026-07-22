@@ -10,6 +10,14 @@ dark-themed dashboard that runs entirely on your Mac.
 
 ![PlayHub library](assets/screenshots/library.png)
 
+<details>
+<summary>More screenshots</summary>
+
+![CrossOver shader caches](assets/screenshots/crossover.png)
+![Playtime stats](assets/screenshots/stats.png)
+
+</details>
+
 ## Features
 
 - **Steam Library** — every game you own with cover art and playtime.
@@ -48,7 +56,7 @@ dark-themed dashboard that runs entirely on your Mac.
 ## Install
 
 ```bash
-git clone https://github.com/PLACEHOLDER/playhub.git
+git clone https://github.com/PlayHubHQDK/playhub.git
 cd playhub
 ./install.sh
 ```

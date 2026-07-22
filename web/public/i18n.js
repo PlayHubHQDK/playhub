@@ -190,7 +190,12 @@ const DICT = {
   },
 };
 
-let CURRENT_LANG = localStorage.getItem("playhub_lang") || null;
+// ?lang=xx overrides everything (useful for screenshots/testing).
+const URL_LANG = new URLSearchParams(location.search).get("lang");
+let CURRENT_LANG =
+  (URL_LANG && LANGS[URL_LANG] ? URL_LANG : null) ||
+  localStorage.getItem("playhub_lang") ||
+  null;
 
 function detectLang() {
   if (CURRENT_LANG) return CURRENT_LANG;
