@@ -99,6 +99,19 @@ async function loadLibrary() {
       )} ↗</a></div>`;
       return;
     }
+    if (data.mode === "local") {
+      let note = $("#local-mode-note");
+      if (!note) {
+        note = document.createElement("div");
+        note.id = "local-mode-note";
+        note.className = "autobackup-status";
+        $("#library .panel-head").after(note);
+      }
+      note.innerHTML = t(
+        "📁 Local mode — reading your Steam installation ({0} games this Mac has seen). Add a free API key via .env (STEAM_API_KEY + STEAM_ID) for your full library and achievements.",
+        data.game_count
+      );
+    }
     renderRecent(libraryGames);
     renderLibrary(libraryGames);
     renderStats(libraryGames);
@@ -133,9 +146,16 @@ window.coverError = function (img, headerUrl) {
 };
 
 function renderRecent(games) {
-  const recent = games
+  let recent = games
     .filter((g) => g.playtime_2weeks_min > 0)
     .sort((a, b) => b.playtime_2weeks_min - a.playtime_2weeks_min);
+  if (!recent.length) {
+    // Lokal tilstand har ikke 2-ugers tal — brug LastPlayed i stedet.
+    const cutoff = Date.now() / 1000 - 14 * 86400;
+    recent = games
+      .filter((g) => g.last_played_unix && g.last_played_unix > cutoff)
+      .sort((a, b) => b.last_played_unix - a.last_played_unix);
+  }
   const section = $("#recent-section");
   if (!recent.length) {
     section.hidden = true;
@@ -775,6 +795,11 @@ function bottleHtml(b) {
     "♻️ Restore latest"
   )}</button>
         <button class="btn" data-act="clean">${t("🧹 Clean bottle temp")}</button>
+        <button class="btn" data-act="clearcache" ${
+          b.has_cache && b.backups.length ? "" : "disabled"
+        } title="${t("Frees disk space. Requires a backup first — restore brings the cache back instantly.")}">${t(
+    "🗑 Clear shader cache"
+  )}</button>
       </div>
       ${backups}
     </div>`;
@@ -796,6 +821,25 @@ $("#crossover-list").addEventListener("click", async (e) => {
         body: JSON.stringify({ bottle }),
       });
       toast(t("Backup created: {0} files ({1}).", r.total_files, fmtBytes(r.total_bytes)), "ok");
+    } else if (act === "clearcache") {
+      if (
+        !confirm(
+          t(
+            'Clear the D3DMetal shader caches for "{0}"?\nYou have a backup, so you can restore instantly — but without restoring, next launch recompiles shaders.',
+            bottle
+          )
+        )
+      ) {
+        btn.disabled = false;
+        btn.textContent = label;
+        return;
+      }
+      const r = await api("/api/crossover/clearcache", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bottle }),
+      });
+      toast(t("Cleared {0} cache folder(s) — {1} freed.", r.caches_cleared, fmtBytes(r.freed_bytes)), "ok");
     } else if (act === "clean") {
       if (
         !confirm(
@@ -992,10 +1036,33 @@ function showSetupWizard() {
         <button id="setup-validate" class="btn primary">${t("Validate & continue")}</button>
         <button id="setup-save" class="btn primary" hidden>${t("Save & start PlayHub")}</button>
       </div>
+      <button id="setup-local" class="setup-skip">${t(
+        "Or skip the key — use local Steam data only (installed & played games; no achievements)"
+      )}</button>
     </div>`;
   overlay.hidden = false;
 
   $("#setup-lang-select").addEventListener("change", (e) => setLang(e.target.value));
+
+  $("#setup-local").addEventListener("click", async () => {
+    try {
+      await api("/api/setup/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "local",
+          itadKey: $("#setup-itad").value.trim() || undefined,
+          lang: getLang(),
+        }),
+      });
+      location.reload();
+    } catch (err) {
+      const resultEl2 = $("#setup-result");
+      resultEl2.hidden = false;
+      resultEl2.className = "setup-result err";
+      resultEl2.textContent = t(err.message);
+    }
+  });
 
   let validated = null;
   const resultEl = $("#setup-result");

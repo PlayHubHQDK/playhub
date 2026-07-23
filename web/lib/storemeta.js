@@ -74,6 +74,7 @@ async function fetchDetails(appid) {
   const d = j?.[appid];
   if (!d?.success || !d.data) return { missing: true };
   return {
+    name: d.data.name || null,
     mac_native: Boolean(d.data.platforms?.mac),
     metacritic: d.data.metacritic?.score ?? null,
     metacritic_url: d.data.metacritic?.url || null,
@@ -123,7 +124,7 @@ async function runQueue() {
       if (
         e.details &&
         now - (e.details_at || 0) < DETAILS_TTL &&
-        (e.details.missing || e.details.mac_native !== undefined)
+        (e.details.missing || (e.details.mac_native !== undefined && e.details.name !== undefined))
       ) {
         status.details_done++;
         continue;

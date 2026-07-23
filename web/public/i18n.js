@@ -153,6 +153,23 @@ const DICT = {
     "Stream Game Pass games directly in the browser.": "Stream Game Pass-spil direkte i browseren.",
     "Remote play from your own Xbox console.": "Fjernspil fra din egen Xbox-konsol.",
 
+    // Lokal tilstand & ryd cache
+    "Or skip the key — use local Steam data only (installed & played games; no achievements)":
+      "Eller spring nøglen over — brug kun lokal Steam-data (installerede & spillede spil; ingen achievements)",
+    "📁 Local mode — reading your Steam installation ({0} games this Mac has seen). Add a free API key via .env (STEAM_API_KEY + STEAM_ID) for your full library and achievements.":
+      "📁 Lokal tilstand — læser din Steam-installation ({0} spil denne Mac har set). Tilføj en gratis API-nøgle i .env (STEAM_API_KEY + STEAM_ID) for hele biblioteket og achievements.",
+    "No local Steam installation found on this Mac.": "Ingen lokal Steam-installation fundet på denne Mac.",
+    "Achievements require a Steam Web API key — add one to .env (STEAM_API_KEY).":
+      "Achievements kræver en Steam Web API-nøgle — tilføj en i .env (STEAM_API_KEY).",
+    "🗑 Clear shader cache": "🗑 Ryd shader-cache",
+    "Frees disk space. Requires a backup first — restore brings the cache back instantly.":
+      "Frigør diskplads. Kræver en backup først — gendan henter cachen tilbage med det samme.",
+    "Clear the D3DMetal shader caches for \"{0}\"?\nYou have a backup, so you can restore instantly — but without restoring, next launch recompiles shaders.":
+      "Ryd D3DMetal shader-caches for \"{0}\"?\nDu har en backup, så du kan gendanne med det samme — men uden gendannelse genkompilerer næste start shaders.",
+    "Cleared {0} cache folder(s) — {1} freed.": "Ryddede {0} cache-mappe(r) — {1} frigjort.",
+    "Take a backup first — clearing without a backup means recompiling from scratch.":
+      "Tag en backup først — rydning uden backup betyder genkompilering fra bunden.",
+
     // Server-fejl (kendte beskeder oversættes; ukendte vises som de er)
     "Wine processes are still running (a game or Steam in the bottle). Close them first and try again.":
       "Der kører stadig Wine-processer (spil eller Steam i bottlen). Luk dem først, og prøv igen.",

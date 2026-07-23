@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ENV_FILE = path.join(__dirname, "..", "..", ".env");
 
 export function isConfigured() {
+  if (process.env.STEAM_MODE === "local") return true;
   return Boolean(process.env.STEAM_API_KEY && process.env.STEAM_ID);
 }
 
@@ -74,7 +75,7 @@ export async function validateCreds(apiKey, steamId) {
 }
 
 // Write credentials into .env, preserving any other existing lines.
-export async function saveEnv({ steamKey, steamId, itadKey }) {
+export async function saveEnv({ steamKey, steamId, itadKey, mode }) {
   let lines = [];
   try {
     lines = fs.readFileSync(ENV_FILE, "utf8").split("\n");
@@ -100,8 +101,9 @@ export async function saveEnv({ steamKey, steamId, itadKey }) {
     process.env[key] = value;
   };
 
-  set("STEAM_API_KEY", steamKey);
-  set("STEAM_ID", steamId);
+  if (steamKey) set("STEAM_API_KEY", steamKey);
+  if (steamId) set("STEAM_ID", steamId);
+  if (mode) set("STEAM_MODE", mode);
   if (itadKey) set("ITAD_API_KEY", itadKey);
 
   await fsp.writeFile(ENV_FILE, lines.join("\n").replace(/\n{3,}$/, "\n") + (lines[lines.length - 1] === "" ? "" : "\n"));

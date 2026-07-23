@@ -447,6 +447,35 @@ async function dirOrFileSize(target) {
   return { bytes, files };
 }
 
+// Clear the D3DMetal shader caches for a bottle (to free disk space).
+// Guards: no running Wine processes, and at least one backup must exist.
+export async function clearShaderCache(bottleName) {
+  if (await wineIsRunning()) {
+    throw new Error(
+      "Wine processes are still running (a game or Steam in the bottle). Close them first and try again."
+    );
+  }
+  const backups = await listBackups(bottleName);
+  if (!backups.length) {
+    throw new Error("Take a backup first — clearing without a backup means recompiling from scratch.");
+  }
+  const { bottles } = await listBottles();
+  const bottle = bottles.find((b) => b.name === bottleName);
+  if (!bottle) throw new Error(`Bottle not found: ${bottleName}`);
+  let freed = 0;
+  let cleared = 0;
+  for (const cache of bottle.caches) {
+    if (cache.type !== "d3dmetal" || cache.file_count === 0) continue;
+    freed += cache.size_bytes;
+    cleared += 1;
+    const entries = await fsp.readdir(cache.path).catch(() => []);
+    for (const name of entries) {
+      await fsp.rm(path.join(cache.path, name), { recursive: true, force: true });
+    }
+  }
+  return { bottle: bottleName, caches_cleared: cleared, freed_bytes: freed };
+}
+
 // Restore a specific backup (or the latest) back to its original locations.
 export async function restoreShaderCache(bottleName, backupId) {
   const backups = await listBackups(bottleName);

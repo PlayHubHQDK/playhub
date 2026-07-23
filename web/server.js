@@ -28,6 +28,7 @@ import {
   restoreShaderCache,
   getShaderCacheByAppid,
   cleanBottleTemp,
+  clearShaderCache,
   CROSSOVER_ROOT,
 } from "./lib/crossover.js";
 import { startAutoBackup, getAutoBackupStatus } from "./lib/autobackup.js";
@@ -43,6 +44,7 @@ import { discover } from "./lib/discover.js";
 import { getDeals } from "./lib/deals.js";
 import { getVersionInfo } from "./lib/version.js";
 import { getCompatCached, enqueueCompat } from "./lib/maccompat.js";
+import { getLocalLibrary, localSteamAvailable } from "./lib/localsteam.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -107,15 +109,22 @@ app.post(
 app.post(
   "/api/setup/save",
   wrap(async (req, res) => {
-    const { steamKey, steamId, itadKey, lang } = req.body || {};
-    if (!steamKey || !/^\d{17}$/.test(String(steamId || ""))) {
-      return res.status(400).json({ error: "missing_fields" });
+    const { steamKey, steamId, itadKey, lang, mode } = req.body || {};
+    if (mode === "local") {
+      if (!localSteamAvailable()) {
+        return res.status(400).json({ error: "No local Steam installation found on this Mac." });
+      }
+      await saveEnv({ mode: "local", itadKey: (itadKey || "").trim() || undefined });
+    } else {
+      if (!steamKey || !/^\d{17}$/.test(String(steamId || ""))) {
+        return res.status(400).json({ error: "missing_fields" });
+      }
+      await saveEnv({
+        steamKey: steamKey.trim(),
+        steamId: String(steamId),
+        itadKey: (itadKey || "").trim() || undefined,
+      });
     }
-    await saveEnv({
-      steamKey: steamKey.trim(),
-      steamId: String(steamId),
-      itadKey: (itadKey || "").trim() || undefined,
-    });
     if (lang && ["en", "da"].includes(lang)) {
       appConfig.lang = lang;
       saveAppConfig().catch(() => {});
@@ -144,12 +153,13 @@ app.post("/api/config", (req, res) => {
 app.get(
   "/api/steam/library",
   wrap(async (req, res) => {
-    if (!process.env.STEAM_API_KEY || !process.env.STEAM_ID) {
+    const useApi = Boolean(process.env.STEAM_API_KEY && process.env.STEAM_ID);
+    if (!useApi && process.env.STEAM_MODE !== "local") {
       return res.status(400).json({ error: "Not configured yet — complete the setup wizard." });
     }
     const [data, macInstalled, crossoverInstalled, cacheByAppid] =
       await Promise.all([
-        getOwnedGames(),
+        useApi ? getOwnedGames() : getLocalLibrary(),
         getSteamInstalledGames(),
         getCrossoverInstalledGames(),
         getShaderCacheByAppid(),
@@ -198,6 +208,7 @@ app.get(
       }
     }
     enqueueCompat(windowsOnly);
+    data.mode = useApi ? "api" : "local";
     // Installed games first, then by playtime within each group.
     data.games.sort((a, b) => {
       const ai = a.installed_on ? 0 : 1;
@@ -372,7 +383,24 @@ app.get(
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({ error: "bad appid" });
     }
+    if (!process.env.STEAM_API_KEY) {
+      return res.json({
+        appid: id,
+        success: false,
+        error: "Achievements require a Steam Web API key — add one to .env (STEAM_API_KEY).",
+        achievements: [],
+      });
+    }
     res.json(await getAchievements({ appid: id }));
+  })
+);
+
+app.post(
+  "/api/crossover/clearcache",
+  wrap(async (req, res) => {
+    const { bottle } = req.body || {};
+    if (!bottle) return res.status(400).json({ error: "Missing 'bottle'." });
+    res.json(await clearShaderCache(bottle));
   })
 );
 
