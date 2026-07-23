@@ -90,12 +90,18 @@ No data leaves your machine otherwise. No analytics, no accounts.
 
 ## The D3DMetal shader-cache story
 
-CrossOver's D3DMetal translates DirectX shaders to Metal and caches the
-result under `$(getconf DARWIN_USER_CACHE_DIR)/d3dm/<Game>.exe/`. First
-launches of big DX12 titles can compile for many minutes — and macOS can
-wipe that cache folder whenever it wants. PlayHub maps each cache to the
-right game and bottle, backs it up (manually or automatically), and restores
-it byte-for-byte. Warm caches, forever.
+D3DMetal is Apple's DirectX→Metal translation layer (from the Game
+Porting Toolkit) that CrossOver ships and uses for DX11/DX12 titles. It
+caches compiled shaders under
+`$(getconf DARWIN_USER_CACHE_DIR)/d3dm/<Game>.exe/`. First launches of big
+DX12 titles can compile for many minutes — and macOS can clear that cache
+folder at any time. PlayHub maps each cache to the right game and bottle,
+backs it up (manually or automatically), and restores it byte-for-byte, so
+a cleared cache never costs you a recompile.
+
+Note: caches are compiled for *your* machine (GPU family, CrossOver
+version). PlayHub backs up and restores your own caches locally — it never
+shares caches between machines.
 
 ## Development
 
@@ -109,6 +115,15 @@ scripts/      setup.sh (generates per-user artifacts), register-mcp.mjs
 `scripts/setup.sh --services|--menubar|--desktop|--mcp` regenerates any
 individual artifact. UI strings are English-canonical with translations in
 `web/public/i18n.js` — adding a language is one dictionary object.
+
+## About this project
+
+Honest disclosure: this is my first software project, built by
+pair-programming with an LLM (Claude). Every feature is tested against my
+real library, my real CrossOver bottles and my real shader caches before it
+ships — the backup/restore path is checksum-verified. I'm a Mac gamer who
+built the tool I wanted; the code is all here, so judge it on what it does.
+Bug reports and rough feedback are genuinely welcome.
 
 ## License
 
