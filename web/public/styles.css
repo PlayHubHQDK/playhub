@@ -75,6 +75,7 @@ a { color: var(--bright); }
 .brand h1::after { content: "_"; animation: blink 1.2s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
+.version-tag { color: var(--muted); font-size: 0.66rem; margin-left: 0.5rem; }
 .tabs { display: flex; gap: 1.1rem; flex-wrap: wrap; }
 .lang-select {
   background: var(--panel);

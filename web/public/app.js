@@ -1109,6 +1109,14 @@ function renderStats(games) {
   }
 }
 
+// Vis kørende version diskret i topbaren (godt til fejlrapporter)
+api("/api/version").then((v) => {
+  const el = document.createElement("span");
+  el.className = "version-tag";
+  el.textContent = "v" + v.current;
+  document.querySelector(".brand").appendChild(el);
+}).catch(() => {});
+
 // --- Update banner ---
 async function checkForUpdate() {
   try {
