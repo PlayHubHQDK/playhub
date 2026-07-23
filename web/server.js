@@ -45,6 +45,7 @@ import { getDeals } from "./lib/deals.js";
 import { getVersionInfo } from "./lib/version.js";
 import { getCompatCached, enqueueCompat } from "./lib/maccompat.js";
 import { getLocalLibrary, localSteamAvailable } from "./lib/localsteam.js";
+import { getAnticheat } from "./lib/anticheat.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -133,6 +134,41 @@ app.post(
   })
 );
 
+app.post(
+  "/api/update",
+  wrap(async (req, res) => {
+    const repoRoot = path.join(__dirname, "..");
+    if (!fs.existsSync(path.join(repoRoot, ".git"))) {
+      return res.status(400).json({ error: "Not a git checkout — update manually." });
+    }
+    try {
+      const { stdout } = await execFileP("git", ["pull", "--ff-only"], { cwd: repoRoot });
+      const changed = !/Already up to date/i.test(stdout);
+      if (changed) {
+        // Geninstallér afhængigheder hvis lock-filer ændrede sig (best effort)
+        await execFileP("npm", ["install", "--silent", "--no-audit", "--no-fund"], {
+          cwd: path.join(repoRoot, "web"),
+        }).catch(() => {});
+        await execFileP("npm", ["install", "--silent", "--no-audit", "--no-fund"], {
+          cwd: path.join(repoRoot, "mcp-server"),
+        }).catch(() => {});
+      }
+      res.json({ ok: true, updated: changed });
+      if (changed) {
+        // launchd (KeepAlive) genstarter serveren med den nye kode.
+        setTimeout(() => process.exit(0), 600);
+      }
+    } catch (err) {
+      res.status(500).json({
+        error:
+          "git pull failed — local changes? Update manually with: git pull. (" +
+          String(err.message || err).split("\n")[0] +
+          ")",
+      });
+    }
+  })
+);
+
 app.get(
   "/api/version",
   wrap(async (req, res) => {
@@ -196,6 +232,8 @@ app.get(
           g.crossover_rating = compat.rating;
           g.crossover_url = compat.url;
         }
+        const ac = getAnticheat(g.appid, g.name);
+        if (ac) g.anticheat = ac;
       }
       if (meta?.review_score_desc) {
         g.review_score_desc = meta.review_score_desc;

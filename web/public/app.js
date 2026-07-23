@@ -225,7 +225,7 @@ function renderLibrary(games) {
           <div class="title">${esc(g.name)}</div>
           <div class="ov-row"><span class="playtime ${zero ? "zero" : ""}">${fmtHours(
         g.playtime_forever_hours
-      )}</span>${platformChip(g)}</div>
+      )}</span><span>${acChip(g)}${platformChip(g)}</span></div>
           ${cacheChip(g)}
         </div>
       </div>`;
@@ -241,6 +241,15 @@ const RATING_LABEL = {
   broken: "Doesn't work",
   unknown: "Unknown",
 };
+function acChip(g) {
+  if (!g.anticheat) return "";
+  const st = g.anticheat.status;
+  if (st !== "Denied" && st !== "Broken") return "";
+  return `<span class="platform-chip xo rating-broken" title="${t(
+    "Anticheat: {0} - likely will not work under CrossOver",
+    st
+  )}">AC:${st.toUpperCase()}</span>`;
+}
 function platformChip(g) {
   if (g.mac_native === true) {
     return `<span class="platform-chip native" title="${t("Runs natively on macOS")}">NATIVE</span>`;
@@ -570,6 +579,23 @@ async function openAchievements(appid, name) {
       }</span>${
         g.crossover_url
           ? ` <a href="${g.crossover_url}" target="_blank" rel="noopener">AGW ↗</a>`
+          : ""
+      }`
+    );
+  }
+
+  if (g.anticheat) {
+    const st = g.anticheat.status;
+    const cls = st === "Denied" || st === "Broken" ? "neg" : st === "Planned" ? "mixed" : "pos";
+    row(
+      t("Anticheat"),
+      `<span class="review-level ${cls}" style="margin:0">${esc(st.toUpperCase())}</span> ${esc(
+        (g.anticheat.anticheats || []).join(", ")
+      )}${
+        g.anticheat.url
+          ? ` <a href="${g.anticheat.url}" target="_blank" rel="noopener" title="${t(
+              "Community data from AreWeAntiCheatYet (Linux/Proton; CrossOver is typically the same or stricter)"
+            )}">AWACY</a>`
           : ""
       }`
     );
@@ -1090,8 +1116,35 @@ async function checkForUpdate() {
     if (!v.update_available) return;
     const banner = document.createElement("div");
     banner.className = "update-banner";
-    banner.innerHTML = `${t("New version available: {0} (you have {1})", "v" + v.latest, "v" + v.current)} <a href="${v.releases_url}" target="_blank" rel="noopener">${t("See what's new ↗")}</a> <button class="update-dismiss" aria-label="Dismiss">✕</button>`;
+    banner.innerHTML = `${t("New version available: {0} (you have {1})", "v" + v.latest, "v" + v.current)} <a href="${v.releases_url}" target="_blank" rel="noopener">${t("See what's new ↗")}</a> <button class="btn primary" id="update-now">${t("Update now")}</button> <button class="update-dismiss" aria-label="Dismiss">✕</button>`;
     banner.querySelector(".update-dismiss").addEventListener("click", () => banner.remove());
+    banner.querySelector("#update-now").addEventListener("click", async (e) => {
+      const b = e.target;
+      b.disabled = true;
+      b.textContent = t("Updating…");
+      try {
+        const r = await api("/api/update", { method: "POST" });
+        if (!r.updated) {
+          b.textContent = t("Already up to date");
+          return;
+        }
+        toast(t("Update installed - restarting PlayHub…"), "ok");
+        const oldVersion = v.current;
+        const poll = setInterval(async () => {
+          try {
+            const nv = await api("/api/version");
+            if (nv.current !== oldVersion) {
+              clearInterval(poll);
+              location.reload();
+            }
+          } catch {}
+        }, 1500);
+      } catch (err) {
+        b.disabled = false;
+        b.textContent = t("Update now");
+        toast(t(err.message), "err");
+      }
+    });
     document.querySelector("main").prepend(banner);
   } catch {
     /* stille */

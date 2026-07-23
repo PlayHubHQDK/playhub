@@ -200,9 +200,21 @@ const DICT = {
     "Doesn't work": "Virker ikke",
     "Unknown": "Ukendt",
 
+    // Anticheat
+    "Anticheat": "Anticheat",
+    "Community data from AreWeAntiCheatYet (Linux/Proton; CrossOver is typically the same or stricter)":
+      "Community-data fra AreWeAntiCheatYet (Linux/Proton; CrossOver er typisk det samme eller strengere)",
+    "Anticheat: {0} - likely will not work under CrossOver":
+      "Anticheat: {0} - virker sandsynligvis ikke under CrossOver",
+
     // Update banner
     "New version available: {0} (you have {1})": "Ny version tilgængelig: {0} (du har {1})",
     "See what's new ↗": "Se nyhederne ↗",
+    "Update now": "Opdatér nu",
+    "Updating…": "Opdaterer…",
+    "Already up to date": "Allerede opdateret",
+    "Update installed - restarting PlayHub…": "Opdatering installeret - genstarter PlayHub…",
+    "Not a git checkout - update manually.": "Ikke et git-checkout - opdatér manuelt.",
 
     // Setup wizard
     "Welcome to PlayHub": "Velkommen til PlayHub",
