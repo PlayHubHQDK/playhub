@@ -108,7 +108,7 @@ async function loadLibrary() {
         $("#library .panel-head").after(note);
       }
       note.innerHTML = t(
-        "📁 Local mode — reading your Steam installation ({0} games this Mac has seen). Add a free API key via .env (STEAM_API_KEY + STEAM_ID) for your full library and achievements.",
+        "Local mode — reading your Steam installation ({0} games this Mac has seen). Add a free API key via .env (STEAM_API_KEY + STEAM_ID) for your full library and achievements.",
         data.game_count
       );
     }
@@ -176,7 +176,7 @@ function renderRecent(games) {
              data-stage="header" onerror="coverError(this, '${g.header_image}')" />
         <div class="recent-info">
           <strong>${esc(g.name)}</strong>
-          <span>🔥 ${fmtHours(g.playtime_2weeks_hours)} · ${t("total")} ${fmtHours(
+          <span>${fmtHours(g.playtime_2weeks_hours)} · ${t("total")} ${fmtHours(
         g.playtime_forever_hours
       )}</span>
         </div>
@@ -223,7 +223,7 @@ function renderLibrary(games) {
              data-stage="capsule" onerror="coverError(this, '${g.header_image}')" />
         <div class="overlay">
           <div class="title">${esc(g.name)}</div>
-          <span class="playtime ${zero ? "zero" : ""}">⏱ ${fmtHours(
+          <span class="playtime ${zero ? "zero" : ""}">${fmtHours(
         g.playtime_forever_hours
       )}</span>
           ${platformChip(g)}
@@ -244,32 +244,39 @@ const RATING_LABEL = {
 };
 function platformChip(g) {
   if (g.mac_native === true) {
-    return `<span class="platform-chip native" title="${t("Runs natively on macOS")}"> Mac</span>`;
+    return `<span class="platform-chip native" title="${t("Runs natively on macOS")}">NATIVE</span>`;
   }
   if (g.mac_native === false) {
     const r = g.crossover_rating || "unknown";
     const label = t(RATING_LABEL[r] || "Unknown");
+    const short = r === "unknown" ? "XO:?" : `XO:${label}`;
     return `<span class="platform-chip xo rating-${r}" title="${t(
       "CrossOver compatibility: {0} (community data from AppleGamingWiki)",
       label
-    )}">🍷 ${label}</span>`;
+    )}">${short}</span>`;
   }
   return ""; // ukendt endnu (berigelse i gang)
 }
 
-// Shader-cache chip for CrossOver games.
+// ASCII shader-cache bar (terminal signature) for CrossOver games.
+function asciiBar(bytes) {
+  if (!bytes) return "[" + "\u2591".repeat(10) + "]";
+  const mb = bytes / 1048576;
+  const filled = Math.max(1, Math.min(10, Math.round((Math.log10(mb + 1) / 3) * 10)));
+  return "[" + "\u2593".repeat(filled) + "\u2591".repeat(10 - filled) + "]";
+}
 function cacheChip(g) {
   if (g.installed_on !== "crossover") return "";
   if (g.shader_cache && g.shader_cache.size_bytes > 0) {
-    return `<span class="cache-chip warm" title="${t(
+    return `<span class="cache-chip" title="${t(
       "D3DMetal shader cache: {0} files ({1})",
       g.shader_cache.file_count,
       esc(g.shader_cache.exe)
-    )}">${t("⚡ cache {0}", fmtBytes(g.shader_cache.size_bytes))}</span>`;
+    )}">CACHE ${asciiBar(g.shader_cache.size_bytes)} ${fmtBytes(g.shader_cache.size_bytes)}</span>`;
   }
   return `<span class="cache-chip cold" title="${t(
     "No D3DMetal cache yet — first launch compiles shaders"
-  )}">${t("❄︎ no cache")}</span>`;
+  )}">CACHE ${asciiBar(0)} \u2014</span>`;
 }
 
 $$(".filter-chip").forEach((chip) => {
@@ -303,7 +310,7 @@ async function loadRecommendations() {
     if (en && en.running && en.total) {
       statusEl.hidden = false;
       statusEl.innerHTML = t(
-        "📡 Enriching library with Steam data in the background: <strong>{0}/{1}</strong> reviews · <strong>{2}/{3}</strong> Metacritic/genres — recommendations improve over time.",
+        "Enriching library with Steam data in the background: <strong>{0}/{1}</strong> reviews · <strong>{2}/{3}</strong> Metacritic/genres — recommendations improve over time.",
         en.reviews_done,
         en.total,
         en.details_done,
@@ -447,7 +454,7 @@ async function loadDeals(recs) {
     if (!data.enabled) {
       $(".discover-note").innerHTML +=
         ` <span class="dim-label">${t(
-          '💡 Cross-store price comparison: add a free <a {0}>ITAD key</a> as ITAD_API_KEY in .env.',
+          'Cross-store price comparison: add a free <a {0}>ITAD key</a> as ITAD_API_KEY in .env.',
           'href="https://isthereanydeal.com/apps/" target="_blank" rel="noopener" style="color:var(--accent)"'
         )}</span>`;
       return;
@@ -501,7 +508,7 @@ async function loadHltb(appid, name) {
     const myH = game ? game.playtime_forever_hours : 0;
     const pct = h.main_h ? Math.min(999, Math.round((myH / h.main_h) * 100)) : null;
     box.innerHTML = `
-      <span class="hltb-title">⏱ HowLongToBeat</span>
+      <span class="hltb-title">HLTB</span>
       <span class="hltb-stat"><strong>${fmtHours(h.main_h)}</strong> Main</span>
       ${h.plus_h ? `<span class="hltb-stat"><strong>${fmtHours(h.plus_h)}</strong> Main+Extra</span>` : ""}
       ${h.completionist_h ? `<span class="hltb-stat"><strong>${fmtHours(h.completionist_h)}</strong> 100%</span>` : ""}
@@ -713,7 +720,7 @@ async function loadCrossover() {
     const ab = data.autobackup;
     $("#autobackup-status").innerHTML = ab
       ? t(
-          "🤖 Auto-backup: <strong>active</strong> — checks every {0} min, backs up after {1} min of quiet",
+          "Auto-backup: <strong>active</strong> — checks every {0} min, backs up after {1} min of quiet",
           ab.poll_minutes,
           ab.quiet_minutes
         ) +
@@ -755,7 +762,7 @@ function bottleHtml(b) {
           const mod = c.last_modified
             ? ` · ${t("last modified")} ${new Date(c.last_modified).toLocaleString(LOCALE)}`
             : "";
-          return `<div class="cache-line">📁 ${esc(c.label)}<br><span class="dim">${esc(
+          return `<div class="cache-line">${esc(c.label)}<br><span class="dim">${esc(
             c.path
           )}</span><br><span class="dim">${c.file_count} ${t("files")} · ${fmtBytes(
             c.size_bytes
@@ -770,7 +777,7 @@ function bottleHtml(b) {
     ? `<div class="backups"><strong>${t("Backups:")}</strong>${b.backups
         .map(
           (bk) =>
-            `<div class="backup-item"><span>🗄 ${new Date(bk.created_at).toLocaleString(
+            `<div class="backup-item"><span>${new Date(bk.created_at).toLocaleString(
               LOCALE
             )}</span>${bk.auto ? `<span class="tag auto-tag">${t("auto")}</span>` : ""}<span class="dim">${
               bk.total_files
@@ -789,16 +796,16 @@ function bottleHtml(b) {
       ${caches}
       <div class="actions">
         <button class="btn primary" data-act="backup" ${b.has_cache ? "" : "disabled"}>${t(
-    "💾 Back up shader cache"
+    "Back up shader cache"
   )}</button>
         <button class="btn" data-act="restore" ${b.backups.length ? "" : "disabled"}>${t(
-    "♻️ Restore latest"
+    "Restore latest"
   )}</button>
-        <button class="btn" data-act="clean">${t("🧹 Clean bottle temp")}</button>
+        <button class="btn" data-act="clean">${t("Clean bottle temp")}</button>
         <button class="btn" data-act="clearcache" ${
           b.has_cache && b.backups.length ? "" : "disabled"
         } title="${t("Frees disk space. Requires a backup first — restore brings the cache back instantly.")}">${t(
-    "🗑 Clear shader cache"
+    "Clear shader cache"
   )}</button>
       </div>
       ${backups}

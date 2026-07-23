@@ -27,7 +27,7 @@ const DICT = {
     "games": "spil",
     "No games match.": "Ingen spil matcher.",
     "Could not load Steam library.": "Kunne ikke hente Steam-bibliotek.",
-    "🔥 Recently played (last 2 weeks)": "🔥 Senest spillet (sidste 2 uger)",
+    "Recently played (last 2 weeks)": "Senest spillet (sidste 2 uger)",
     "Full library": "Hele biblioteket",
     "total": "i alt",
     "✓ Installed": "✓ Installeret",
@@ -60,9 +60,9 @@ const DICT = {
       "Ingen D3DMetal shader-cache fundet endnu — kør et spil i bottlen først.",
     "files": "filer",
     "last modified": "senest",
-    "💾 Back up shader cache": "💾 Backup shader-cache",
-    "♻️ Restore latest": "♻️ Gendan seneste",
-    "🧹 Clean bottle temp": "🧹 Ryd op i bottle",
+    "Back up shader cache": "Backup shader-cache",
+    "Restore latest": "Gendan seneste",
+    "Clean bottle temp": "Ryd op i bottle",
     "Backups:": "Backups:",
     "auto": "auto",
     "Working…": "Arbejder…",
@@ -71,8 +71,8 @@ const DICT = {
     "Cleaned up: {0} freed ({1} files).": "Ryddet op: {0} frigjort ({1} filer).",
     "Clean temporary files in bottle \"{0}\"?\nOnly Windows/Wine temp folders are emptied — games and saves are untouched.":
       "Ryd op i midlertidige filer i bottlen \"{0}\"?\nSletter kun indholdet af Windows/Wine temp-mapper — spil og gemte data røres ikke.",
-    "🤖 Auto-backup: <strong>active</strong> — checks every {0} min, backs up after {1} min of quiet":
-      "🤖 Auto-backup: <strong>aktiv</strong> — tjekker hvert {0}. min, backupper efter {1} min ro",
+    "Auto-backup: <strong>active</strong> — checks every {0} min, backs up after {1} min of quiet":
+      "Auto-backup: <strong>aktiv</strong> — tjekker hvert {0}. min, backupper efter {1} min ro",
     "latest": "seneste",
     "no auto-backup yet": "ingen auto-backup endnu",
     "error": "fejl",
@@ -126,8 +126,8 @@ const DICT = {
     "Computing recommendations…": "Beregner anbefalinger…",
     "No recommendations yet — wait for enrichment to progress and press ↻ Refresh.":
       "Ingen anbefalinger endnu — vent til berigelsen er kommet lidt længere, og tryk ↻ Opdater.",
-    "📡 Enriching library with Steam data in the background: <strong>{0}/{1}</strong> reviews · <strong>{2}/{3}</strong> Metacritic/genres — recommendations improve over time.":
-      "📡 Beriger biblioteket med Steam-data i baggrunden: <strong>{0}/{1}</strong> anmeldelser · <strong>{2}/{3}</strong> Metacritic/genrer — anbefalingerne bliver bedre efterhånden.",
+    "Enriching library with Steam data in the background: <strong>{0}/{1}</strong> reviews · <strong>{2}/{3}</strong> Metacritic/genres — recommendations improve over time.":
+      "Beriger biblioteket med Steam-data i baggrunden: <strong>{0}/{1}</strong> anmeldelser · <strong>{2}/{3}</strong> Metacritic/genrer — anbefalingerne bliver bedre efterhånden.",
     "{0}% positive": "{0}% positive",
 
     // Buy ideas
@@ -144,8 +144,8 @@ const DICT = {
     "at": "hos",
     "(grey market)": "(grå marked)",
     "{0} prices still loading — press ↻ shortly.": "{0} priser hentes stadig — tryk ↻ om lidt.",
-    "💡 Cross-store price comparison: add a free <a {0}>ITAD key</a> as ITAD_API_KEY in .env.":
-      "💡 Prissammenligning på tværs af butikker: tilføj en gratis <a {0}>ITAD-nøgle</a> som ITAD_API_KEY i .env.",
+    "Cross-store price comparison: add a free <a {0}>ITAD key</a> as ITAD_API_KEY in .env.":
+      "Prissammenligning på tværs af butikker: tilføj en gratis <a {0}>ITAD-nøgle</a> som ITAD_API_KEY i .env.",
     "Links marked 💰 are affiliate links — we may earn a commission.":
       "Links markeret 💰 er reklamelinks — vi kan tjene kommission.",
 
@@ -156,12 +156,12 @@ const DICT = {
     // Lokal tilstand & ryd cache
     "Or skip the key — use local Steam data only (installed & played games; no achievements)":
       "Eller spring nøglen over — brug kun lokal Steam-data (installerede & spillede spil; ingen achievements)",
-    "📁 Local mode — reading your Steam installation ({0} games this Mac has seen). Add a free API key via .env (STEAM_API_KEY + STEAM_ID) for your full library and achievements.":
-      "📁 Lokal tilstand — læser din Steam-installation ({0} spil denne Mac har set). Tilføj en gratis API-nøgle i .env (STEAM_API_KEY + STEAM_ID) for hele biblioteket og achievements.",
+    "Local mode — reading your Steam installation ({0} games this Mac has seen). Add a free API key via .env (STEAM_API_KEY + STEAM_ID) for your full library and achievements.":
+      "Lokal tilstand — læser din Steam-installation ({0} spil denne Mac har set). Tilføj en gratis API-nøgle i .env (STEAM_API_KEY + STEAM_ID) for hele biblioteket og achievements.",
     "No local Steam installation found on this Mac.": "Ingen lokal Steam-installation fundet på denne Mac.",
     "Achievements require a Steam Web API key — add one to .env (STEAM_API_KEY).":
       "Achievements kræver en Steam Web API-nøgle — tilføj en i .env (STEAM_API_KEY).",
-    "🗑 Clear shader cache": "🗑 Ryd shader-cache",
+    "Clear shader cache": "Ryd shader-cache",
     "Frees disk space. Requires a backup first — restore brings the cache back instantly.":
       "Frigør diskplads. Kræver en backup først — gendan henter cachen tilbage med det samme.",
     "Clear the D3DMetal shader caches for \"{0}\"?\nYou have a backup, so you can restore instantly — but without restoring, next launch recompiles shaders.":
@@ -181,8 +181,8 @@ const DICT = {
     "Open Steam privacy settings": "Åbn Steams privatlivsindstillinger",
 
     // Platform & CrossOver-kompatibilitet
-    " Mac native": " Mac-native",
-    "🍷 Needs CrossOver": "🍷 Kræver CrossOver",
+    "Mac native": "Mac native",
+    "Needs CrossOver": "Kræver CrossOver",
     "Runs natively on macOS": "Kører native på macOS",
     "CrossOver compatibility: {0} (community data from AppleGamingWiki)":
       "CrossOver-kompatibilitet: {0} (community-data fra AppleGamingWiki)",
