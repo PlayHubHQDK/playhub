@@ -19,3 +19,4 @@ web/cache/
 
 # Local Claude Code settings
 .claude/
+notes/
