@@ -141,19 +141,20 @@
       </section>
     </main>
 
-    <!-- Achievements modal -->
+    <!-- Game detail modal -->
     <div id="ach-modal" class="modal-backdrop" hidden>
       <div class="modal">
+        <img id="gd-banner" alt="" hidden />
         <div class="modal-head">
           <h3 id="ach-title">—</h3>
           <button id="ach-close" class="btn" aria-label="Close">✕</button>
         </div>
+        <div id="gd-info" class="gd-info"></div>
+        <div id="gd-actions" class="gd-actions"></div>
         <div id="ach-progress" class="ach-progress" hidden>
           <div class="ach-bar"><div id="ach-bar-fill" class="ach-bar-fill"></div></div>
           <span id="ach-pct" class="ach-pct"></span>
         </div>
-        <div id="ach-meta" class="ach-meta" hidden></div>
-        <div id="hltb-box" class="hltb-box" hidden></div>
         <div id="ach-body" class="modal-body">
           <div class="loading" data-i18n>Fetching achievements…</div>
         </div>

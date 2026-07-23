@@ -223,10 +223,9 @@ function renderLibrary(games) {
              data-stage="capsule" onerror="coverError(this, '${g.header_image}')" />
         <div class="overlay">
           <div class="title">${esc(g.name)}</div>
-          <span class="playtime ${zero ? "zero" : ""}">${fmtHours(
+          <div class="ov-row"><span class="playtime ${zero ? "zero" : ""}">${fmtHours(
         g.playtime_forever_hours
-      )}</span>
-          ${platformChip(g)}
+      )}</span>${platformChip(g)}</div>
           ${cacheChip(g)}
         </div>
       </div>`;
@@ -492,35 +491,29 @@ async function loadDeals(recs) {
 }
 $("#discover-reload").addEventListener("click", loadDiscover);
 
-// --- HowLongToBeat ---
+// --- HowLongToBeat (fylder HLTB-rækken i detalje-visningen) ---
 let hltbRequestId = 0;
 async function loadHltb(appid, name) {
   const reqId = ++hltbRequestId;
-  const box = $("#hltb-box");
   try {
     const h = await api(`/api/hltb?name=${encodeURIComponent(name)}`);
     if (reqId !== hltbRequestId) return;
-    if (!h.found || !h.main_h) {
-      box.hidden = true;
-      return;
-    }
+    const rowEl = $("#gd-hltb-row");
+    if (!rowEl || !h.found || !h.main_h) return;
     const game = libraryGames.find((g) => g.appid === appid);
     const myH = game ? game.playtime_forever_hours : 0;
     const pct = h.main_h ? Math.min(999, Math.round((myH / h.main_h) * 100)) : null;
-    box.innerHTML = `
-      <span class="hltb-title">HLTB</span>
-      <span class="hltb-stat"><strong>${fmtHours(h.main_h)}</strong> Main</span>
-      ${h.plus_h ? `<span class="hltb-stat"><strong>${fmtHours(h.plus_h)}</strong> Main+Extra</span>` : ""}
-      ${h.completionist_h ? `<span class="hltb-stat"><strong>${fmtHours(h.completionist_h)}</strong> 100%</span>` : ""}
-      ${
-        myH > 0 && pct !== null
-          ? `<span class="hltb-me">${t("Your time: {0} ≈ {1}% of Main", fmtHours(myH), pct)}</span>`
-          : ""
-      }
-      <a class="hltb-link" href="${h.url}" target="_blank" rel="noopener">hltb ↗</a>`;
-    box.hidden = false;
+    $("#gd-hltb").innerHTML =
+      `Main <strong>${fmtHours(h.main_h)}</strong>` +
+      (h.plus_h ? ` · +Extra ${fmtHours(h.plus_h)}` : "") +
+      (h.completionist_h ? ` · 100% ${fmtHours(h.completionist_h)}` : "") +
+      (myH > 0 && pct !== null
+        ? ` · <span class="hltb-me">${t("Your time: {0} ≈ {1}% of Main", fmtHours(myH), pct)}</span>`
+        : "") +
+      ` <a href="${h.url}" target="_blank" rel="noopener">hltb ↗</a>`;
+    rowEl.hidden = false;
   } catch {
-    if (reqId === hltbRequestId) box.hidden = true;
+    /* valgfri */
   }
 }
 
@@ -538,33 +531,138 @@ document.addEventListener("keydown", (e) => {
 });
 
 async function openAchievements(appid, name) {
+  const g = libraryGames.find((x) => x.appid === appid) || { appid, name };
   $("#ach-title").textContent = name;
-  $("#ach-progress").hidden = true;
-  $("#hltb-box").hidden = true;
-  const gameMeta = libraryGames.find((g) => g.appid === appid);
-  const metaEl = $("#ach-meta");
-  if (gameMeta && (gameMeta.review_score_desc || gameMeta.metacritic)) {
-    metaEl.innerHTML =
-      (gameMeta.review_score_desc
-        ? `<span class="review-level ${reviewClass(gameMeta.review_positive_pct)}">${t(
-            "Steam: {0}",
-            esc(t(gameMeta.review_score_desc))
+
+  // Banner
+  const banner = $("#gd-banner");
+  banner.hidden = false;
+  banner.onerror = () => {
+    banner.onerror = () => (banner.hidden = true);
+    fetch(`/api/steam/artwork/${appid}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((art) => {
+        if (art && art.header_image) banner.src = art.header_image;
+        else banner.hidden = true;
+      })
+      .catch(() => (banner.hidden = true));
+  };
+  banner.src =
+    g.header_image ||
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
+
+  // Info-rækker (terminal-tabel)
+  const rows = [];
+  const row = (label, valueHtml) =>
+    rows.push(
+      `<div class="gd-row"><span class="gd-label">${label}</span><span class="gd-value">${valueHtml}</span></div>`
+    );
+
+  if (g.mac_native === true) {
+    row(t("Platform"), `<span class="platform-chip native">NATIVE</span>`);
+  } else if (g.mac_native === false) {
+    const r = g.crossover_rating || "unknown";
+    const label = t(RATING_LABEL[r] || "Unknown");
+    row(
+      t("Platform"),
+      `<span class="platform-chip xo rating-${r}">XO:${
+        r === "unknown" ? "?" : label
+      }</span>${
+        g.crossover_url
+          ? ` <a href="${g.crossover_url}" target="_blank" rel="noopener">AGW ↗</a>`
+          : ""
+      }`
+    );
+  }
+
+  row(
+    t("Installed"),
+    g.installed_on === "mac"
+      ? "MAC"
+      : g.installed_on === "crossover"
+      ? `CROSSOVER${g.bottle ? " · " + esc(g.bottle) : ""}`
+      : "—"
+  );
+
+  const lp = g.last_played_unix
+    ? ` · ${t("last played")} ${new Date(g.last_played_unix * 1000).toLocaleDateString(LOCALE)}`
+    : "";
+  row(t("Playtime"), `${fmtHours(g.playtime_forever_hours || 0)}${lp}`);
+
+  if (g.shader_cache && g.shader_cache.size_bytes) {
+    row(
+      t("Shader cache"),
+      `<span class="cache-chip" style="margin:0;display:inline">${asciiBar(
+        g.shader_cache.size_bytes
+      )} ${fmtBytes(g.shader_cache.size_bytes)}</span>`
+    );
+  }
+
+  if (g.review_score_desc || g.metacritic) {
+    row(
+      t("Reviews"),
+      (g.review_score_desc
+        ? `<span class="review-level ${reviewClass(g.review_positive_pct)}" style="margin:0">${esc(
+            t(g.review_score_desc)
           )}${
-            gameMeta.review_positive_pct !== null &&
-            gameMeta.review_positive_pct !== undefined
-              ? ` ${t("({0}% positive)", gameMeta.review_positive_pct)}`
+            g.review_positive_pct !== null && g.review_positive_pct !== undefined
+              ? ` · ${g.review_positive_pct}%`
               : ""
           }</span>`
         : "") +
-      (gameMeta.metacritic
-        ? `<span class="mc-badge ${
-            gameMeta.metacritic >= 75 ? "good" : gameMeta.metacritic >= 50 ? "mid" : "bad"
-          }">Metacritic ${gameMeta.metacritic}</span>`
-        : "");
-    metaEl.hidden = false;
-  } else {
-    metaEl.hidden = true;
+        (g.metacritic
+          ? ` <span class="mc-badge ${
+              g.metacritic >= 75 ? "good" : g.metacritic >= 50 ? "mid" : "bad"
+            }">MC ${g.metacritic}</span>`
+          : "")
+    );
   }
+
+  rows.push(
+    `<div class="gd-row" id="gd-hltb-row" hidden><span class="gd-label">HLTB</span><span class="gd-value" id="gd-hltb"></span></div>`
+  );
+  $("#gd-info").innerHTML = rows.join("");
+
+  // Handlinger
+  const acts = [];
+  if (g.installed_on) {
+    acts.push(`<button class="btn primary" id="gd-launch">▶ ${t("Launch")}</button>`);
+  }
+  acts.push(
+    `<a class="btn" href="https://store.steampowered.com/app/${appid}" target="_blank" rel="noopener">${t(
+      "Steam store ↗"
+    )}</a>`
+  );
+  $("#gd-actions").innerHTML = acts.join("");
+  const lb = $("#gd-launch");
+  if (lb) {
+    lb.addEventListener("click", async () => {
+      lb.disabled = true;
+      try {
+        const r = await api("/api/launch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            appid: g.appid,
+            target: g.installed_on,
+            bottle: g.bottle || undefined,
+          }),
+        });
+        toast(
+          r.method === "crossover"
+            ? t("Starting via CrossOver (bottle: {0}) — first start can take a while…", r.bottle)
+            : t("Starting via Steam…"),
+          "ok"
+        );
+      } catch (err) {
+        toast(t(err.message), "err");
+      } finally {
+        setTimeout(() => (lb.disabled = false), 3000);
+      }
+    });
+  }
+
+  $("#ach-progress").hidden = true;
   $("#ach-body").innerHTML = `<div class="loading">${t("Fetching achievements…")}</div>`;
   achModal.hidden = false;
   loadHltb(appid, name);
@@ -583,7 +681,7 @@ async function openAchievements(appid, name) {
       .filter((x) => x.achieved)
       .sort((x, y) => (y.unlock_time_unix || 0) - (x.unlock_time_unix || 0));
     const locked = a.achievements.filter((x) => !x.achieved);
-    const row = (x) => `
+    const achRow = (x) => `
       <div class="ach-row ${x.achieved ? "unlocked" : "locked"}">
         ${
           x.icon
@@ -603,11 +701,11 @@ async function openAchievements(appid, name) {
     $("#ach-body").innerHTML =
       (unlocked.length
         ? `<h4 class="ach-section">${t("Unlocked ({0})", unlocked.length)}</h4>` +
-          unlocked.map(row).join("")
+          unlocked.map(achRow).join("")
         : "") +
       (locked.length
         ? `<h4 class="ach-section">${t("Missing ({0})", locked.length)}</h4>` +
-          locked.map(row).join("")
+          locked.map(achRow).join("")
         : "");
   } catch (err) {
     $("#ach-body").innerHTML = `<div class="empty">${esc(err.message)}</div>`;

@@ -98,6 +98,14 @@ const DICT = {
     "{0} h": "{0} t",
     "{0} min": "{0} min",
 
+    // Detalje-visning
+    "Platform": "Platform",
+    "Playtime": "Spilletid",
+    "Shader cache": "Shader-cache",
+    "Reviews": "Anmeldelser",
+    "last played": "sidst spillet",
+    "Launch": "Start",
+
     // Achievements modal
     "Fetching achievements…": "Henter achievements…",
     "This game has no achievements.": "Dette spil har ingen achievements.",
