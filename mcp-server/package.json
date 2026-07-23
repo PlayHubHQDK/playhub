@@ -1,6 +1,6 @@
 {
   "name": "playhub-steam-mcp",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Local MCP server exposing Steam Web API tools (owned games, recently played, achievements).",
   "type": "module",
   "main": "index.js",

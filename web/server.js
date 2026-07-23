@@ -29,6 +29,7 @@ import {
   getShaderCacheByAppid,
   cleanBottleTemp,
   clearShaderCache,
+  rewarmBottle,
   CROSSOVER_ROOT,
 } from "./lib/crossover.js";
 import { startAutoBackup, getAutoBackupStatus } from "./lib/autobackup.js";
@@ -327,6 +328,9 @@ app.post(
       if (!bottle || /[^A-Za-z0-9 ._-]/.test(bottle)) {
         return res.status(400).json({ error: "Invalid bottle name." });
       }
+      // Auto-rewarm: gendan manglende/forringede shader-caches fra backup
+      // inden launch (sekunder i stedet for minutters genkompilering).
+      const rewarm = await rewarmBottle(bottle).catch(() => null);
       // Fire-and-forget: booting Steam in the bottle can take a while.
       const child = spawn(
         CROSSOVER_WINE,
@@ -338,7 +342,7 @@ app.post(
         { detached: true, stdio: "ignore" }
       );
       child.unref();
-      return res.json({ ok: true, method: "crossover", bottle });
+      return res.json({ ok: true, method: "crossover", bottle, rewarm });
     }
     res.status(400).json({ error: "target must be 'mac' or 'crossover'." });
   })

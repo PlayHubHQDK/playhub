@@ -675,11 +675,13 @@ async function openAchievements(appid, name) {
           }),
         });
         toast(
-          r.method === "crossover"
-            ? t("Starting via CrossOver (bottle: {0}) — first start can take a while…", r.bottle)
-            : t("Starting via Steam…"),
-          "ok"
-        );
+      r.method === "crossover"
+        ? (r.rewarm && r.rewarm.restored && r.rewarm.restored.length
+            ? t("Shader cache restored from backup ({0}) — launching without recompile…", fmtBytes(r.rewarm.restored.reduce((s, x) => s + x.bytes, 0)))
+            : t("Starting via CrossOver (bottle: {0}) — first start can take a while…", r.bottle))
+        : t("Starting via Steam…"),
+      "ok"
+    );
       } catch (err) {
         toast(t(err.message), "err");
       } finally {
@@ -760,7 +762,9 @@ $("#library").addEventListener("click", async (e) => {
     });
     toast(
       r.method === "crossover"
-        ? t("Starting via CrossOver (bottle: {0}) — first start can take a while…", r.bottle)
+        ? (r.rewarm && r.rewarm.restored && r.rewarm.restored.length
+            ? t("Shader cache restored from backup ({0}) — launching without recompile…", fmtBytes(r.rewarm.restored.reduce((s, x) => s + x.bytes, 0)))
+            : t("Starting via CrossOver (bottle: {0}) — first start can take a while…", r.bottle))
         : t("Starting via Steam…"),
       "ok"
     );

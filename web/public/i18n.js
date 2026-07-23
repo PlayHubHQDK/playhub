@@ -200,6 +200,9 @@ const DICT = {
     "Doesn't work": "Virker ikke",
     "Unknown": "Ukendt",
 
+    "Shader cache restored from backup ({0}) — launching without recompile…":
+      "Shader-cache gendannet fra backup ({0}) — starter uden genkompilering…",
+
     // Anticheat
     "Anticheat": "Anticheat",
     "Community data from AreWeAntiCheatYet (Linux/Proton; CrossOver is typically the same or stricter)":

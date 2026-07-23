@@ -447,6 +447,39 @@ async function dirOrFileSize(target) {
   return { bytes, files };
 }
 
+// Auto-rewarm: before launching a bottle game, restore any D3DMetal cache
+// that is missing or clearly degraded (< half of the newest backup's size).
+// A restore takes seconds; a recompile takes minutes.
+export async function rewarmBottle(bottleName) {
+  const backups = await listBackups(bottleName);
+  if (!backups.length) return { restored: [], reason: "no_backup" };
+  const backup = backups[0];
+  const backupRoot = path.join(
+    BACKUP_ROOT,
+    bottleName.replace(/[^A-Za-z0-9._-]/g, "_"),
+    backup.id
+  );
+  const restored = [];
+  for (const item of backup.items || []) {
+    if (item.type !== "d3dmetal" || !item.size_bytes) continue;
+    const src = path.join(backupRoot, item.subdir);
+    if (!fs.existsSync(src)) continue;
+    let liveBytes = 0;
+    try {
+      const stats = await dirStats(item.original_path);
+      liveBytes = stats.size_bytes;
+    } catch {
+      /* mangler helt */
+    }
+    if (liveBytes >= item.size_bytes / 2) continue; // allerede varm
+    await fsp.rm(item.original_path, { recursive: true, force: true });
+    await fsp.mkdir(path.dirname(item.original_path), { recursive: true });
+    await fsp.cp(src, item.original_path, { recursive: true });
+    restored.push({ label: item.label, bytes: item.size_bytes });
+  }
+  return { restored, backup_id: backup.id };
+}
+
 // Clear the D3DMetal shader caches for a bottle (to free disk space).
 // Guards: no running Wine processes, and at least one backup must exist.
 export async function clearShaderCache(bottleName) {
