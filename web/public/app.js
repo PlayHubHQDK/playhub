@@ -193,6 +193,8 @@ function renderLibrary(games) {
     games = games.filter((g) => g.mac_native === true);
   } else if (libraryFilter === "windows") {
     games = games.filter((g) => g.mac_native === false);
+  } else if (libraryFilter === "controller") {
+    games = games.filter((g) => g.controller_support === "full");
   }
   if (!games.length) {
     grid.innerHTML = `<div class="empty">${t("No games match.")}</div>`;
@@ -225,7 +227,7 @@ function renderLibrary(games) {
           <div class="title">${esc(g.name)}</div>
           <div class="ov-row"><span class="playtime ${zero ? "zero" : ""}">${fmtHours(
         g.playtime_forever_hours
-      )}</span><span>${acChip(g)}${platformChip(g)}</span></div>
+      )}</span><span>${acChip(g)}${padChip(g)}${platformChip(g)}</span></div>
           ${cacheChip(g)}
         </div>
       </div>`;
@@ -249,6 +251,16 @@ function acChip(g) {
     "Anticheat: {0} - likely will not work under CrossOver",
     st
   )}">AC:${st.toUpperCase()}</span>`;
+}
+// Controller-badge (Steam appdetails: controller_support "full"/"partial").
+function padChip(g) {
+  if (g.controller_support === "full") {
+    return `<span class="platform-chip pad" title="${t("Full controller support")}">PAD:FULL</span>`;
+  }
+  if (g.controller_support === "partial") {
+    return `<span class="platform-chip pad partial" title="${t("Partial controller support")}">PAD:PART</span>`;
+  }
+  return "";
 }
 function platformChip(g) {
   if (g.mac_native === true) {
@@ -639,6 +651,15 @@ async function openAchievements(appid, name) {
           ? ` <a href="${g.crossover_url}" target="_blank" rel="noopener">AGW ↗</a>`
           : ""
       }`
+    );
+  }
+
+  if (g.controller_support) {
+    row(
+      t("Controller"),
+      g.controller_support === "full"
+        ? `<span class="platform-chip pad">PAD:FULL</span> ${t("Full controller support")}`
+        : `<span class="platform-chip pad partial">PAD:PART</span> ${t("Partial controller support")}`
     );
   }
 

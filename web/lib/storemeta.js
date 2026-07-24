@@ -79,6 +79,7 @@ async function fetchDetails(appid) {
     metacritic: d.data.metacritic?.score ?? null,
     metacritic_url: d.data.metacritic?.url || null,
     genres: (d.data.genres || []).map((g) => g.description),
+    controller_support: d.data.controller_support || null, // "full" | "partial" | null
     short_description: d.data.short_description || null,
     release_year:
       Number((d.data.release_date?.date || "").match(/\d{4}/)?.[0]) || null,
@@ -124,7 +125,10 @@ async function runQueue() {
       if (
         e.details &&
         now - (e.details_at || 0) < DETAILS_TTL &&
-        (e.details.missing || (e.details.mac_native !== undefined && e.details.name !== undefined))
+        (e.details.missing ||
+          (e.details.mac_native !== undefined &&
+            e.details.name !== undefined &&
+            e.details.controller_support !== undefined))
       ) {
         status.details_done++;
         continue;

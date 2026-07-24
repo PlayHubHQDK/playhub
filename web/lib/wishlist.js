@@ -77,6 +77,23 @@ async function runNameQueue() {
           }
         }
       } catch {}
+      // SteamSpy kender ikke helt nye/uudgivne spil — fald tilbage til Steams appdetails.
+      if (!store.names[id]) {
+        try {
+          const res = await fetch(
+            `https://store.steampowered.com/api/appdetails?appids=${id}&filters=basic`
+          );
+          if (res.ok) {
+            const j = await res.json();
+            const name = j?.[id]?.data?.name;
+            if (name) {
+              store.names[id] = name;
+              dirty = true;
+            }
+          }
+        } catch {}
+        await new Promise((r) => setTimeout(r, 1600));
+      }
       await new Promise((r) => setTimeout(r, 1100));
     }
   } finally {

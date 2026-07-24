@@ -312,6 +312,8 @@ input[type="search"]:focus { outline: none; border-color: var(--bright); }
   text-transform: uppercase;
 }
 .platform-chip.native { color: #9adf9a; }
+.platform-chip.pad { color: #8ac6ff; }
+.platform-chip.pad.partial { color: var(--amber); }
 .platform-chip.xo.rating-perfect { color: var(--bright); }
 .platform-chip.xo.rating-playable { color: #b8e64e; }
 .platform-chip.xo.rating-runs { color: var(--amber); }

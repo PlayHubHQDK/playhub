@@ -199,6 +199,10 @@ const DICT = {
     "Runs with issues": "Kører med problemer",
     "Doesn't work": "Virker ikke",
     "Unknown": "Ukendt",
+    "\ud83c\udfae Controller": "\ud83c\udfae Controller",
+    "Full controller support": "Fuld controller-support",
+    "Partial controller support": "Delvis controller-support",
+    "Controller": "Controller",
 
     "Shader cache restored from backup ({0}) — launching without recompile…":
       "Shader-cache gendannet fra backup ({0}) — starter uden genkompilering…",

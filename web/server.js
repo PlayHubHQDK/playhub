@@ -311,6 +311,7 @@ app.get(
       const meta = getMeta(g.appid);
       // Platform + CrossOver-kompatibilitet
       g.mac_native = meta?.mac_native ?? null; // null = ikke beriget endnu
+      g.controller_support = meta?.controller_support ?? null; // "full" | "partial" | null
       if (g.mac_native === false) {
         windowsOnly.push(g.name);
         const compat = getCompatCached(g.name);
