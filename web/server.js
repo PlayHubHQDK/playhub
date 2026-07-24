@@ -30,6 +30,8 @@ import {
   cleanBottleTemp,
   clearShaderCache,
   rewarmBottle,
+  pruneBackups,
+  backupsTotalBytes,
   CROSSOVER_ROOT,
 } from "./lib/crossover.js";
 import { startAutoBackup, getAutoBackupStatus } from "./lib/autobackup.js";
@@ -47,6 +49,7 @@ import { getVersionInfo } from "./lib/version.js";
 import { getCompatCached, enqueueCompat } from "./lib/maccompat.js";
 import { getLocalLibrary, localSteamAvailable } from "./lib/localsteam.js";
 import { getAnticheat } from "./lib/anticheat.js";
+import { runDoctor, applyFix } from "./lib/doctor.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -85,6 +88,54 @@ async function saveAppConfig() {
   await fs.promises.mkdir(path.dirname(CONFIG_FILE), { recursive: true });
   await fs.promises.writeFile(CONFIG_FILE, JSON.stringify(appConfig, null, 2));
 }
+
+// Launch options per spil (persisteret)
+const LAUNCHOPTS_FILE = path.join(__dirname, "cache", "launchopts.json");
+let launchOpts = {};
+try {
+  launchOpts = JSON.parse(fs.readFileSync(LAUNCHOPTS_FILE, "utf8"));
+} catch {}
+async function saveLaunchOpts() {
+  await fs.promises.mkdir(path.dirname(LAUNCHOPTS_FILE), { recursive: true });
+  await fs.promises.writeFile(LAUNCHOPTS_FILE, JSON.stringify(launchOpts, null, 2));
+}
+
+app.get("/api/launchopts/:appid", (req, res) => {
+  res.json({ opts: launchOpts[req.params.appid] || "" });
+});
+app.post("/api/launchopts/:appid", (req, res) => {
+  const opts = String(req.body?.opts || "").slice(0, 200).trim();
+  if (opts) launchOpts[req.params.appid] = opts;
+  else delete launchOpts[req.params.appid];
+  saveLaunchOpts().catch(() => {});
+  res.json({ ok: true, opts });
+});
+
+// Bottle Doctor + auto-fixes
+app.get(
+  "/api/crossover/doctor/:bottle",
+  wrap(async (req, res) => {
+    res.json(await runDoctor(req.params.bottle));
+  })
+);
+app.post(
+  "/api/crossover/fix",
+  wrap(async (req, res) => {
+    const { bottle, fix } = req.body || {};
+    if (!bottle || !fix) return res.status(400).json({ error: "Missing 'bottle'/'fix'." });
+    res.json(await applyFix(bottle, fix));
+  })
+);
+
+// Prune gamle backups
+app.post(
+  "/api/crossover/prune",
+  wrap(async (req, res) => {
+    const { bottle, keep } = req.body || {};
+    if (!bottle) return res.status(400).json({ error: "Missing 'bottle'." });
+    res.json(await pruneBackups(bottle, Math.max(1, Number(keep) || 3)));
+  })
+);
 
 // --- First-run setup ---
 app.get("/api/setup/status", (req, res) => {
@@ -270,10 +321,16 @@ app.get(
   "/api/crossover/bottles",
   wrap(async (req, res) => {
     const data = await listBottles();
+    const cachesTotal = data.bottles.reduce(
+      (s, b) => s + b.caches.reduce((x, c) => x + c.size_bytes, 0),
+      0
+    );
     res.json({
       ...data,
       crossover_root: CROSSOVER_ROOT,
       autobackup: getAutoBackupStatus(),
+      caches_total_bytes: cachesTotal,
+      backups_total_bytes: await backupsTotalBytes(),
     });
   })
 );
@@ -318,7 +375,12 @@ app.post(
       if (!steamApp) {
         return res.status(500).json({ error: "Steam doesn't seem to be installed on this Mac." });
       }
-      await execFileP("open", [`steam://rungameid/${id}`]);
+      const optsMac = launchOpts[String(id)];
+      await execFileP("open", [
+        optsMac
+          ? `steam://run/${id}//${encodeURIComponent(optsMac)}/`
+          : `steam://rungameid/${id}`,
+      ]);
       return res.json({ ok: true, method: "steam-url" });
     }
     if (target === "crossover") {
@@ -338,6 +400,7 @@ app.post(
           "--bottle", bottle,
           "C:\\Program Files (x86)\\Steam\\steam.exe",
           "-applaunch", String(id),
+          ...(launchOpts[String(id)] ? launchOpts[String(id)].split(/\s+/) : []),
         ],
         { detached: true, stdio: "ignore" }
       );

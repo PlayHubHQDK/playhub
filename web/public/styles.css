@@ -791,6 +791,39 @@ button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .hltb-link { color: var(--muted); text-decoration: none; margin-left: auto; }
 .hltb-link:hover { color: var(--bright); }
 
+/* Bottle Doctor */
+.doctor-results { margin-top: 0.6rem; }
+.doc-line {
+  font-size: 0.72rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+.doc-line:last-child { border-bottom: 1px solid var(--border); }
+.doc-ok { color: var(--muted); }
+.doc-ok::first-line { color: inherit; }
+.doc-warn { color: var(--amber); }
+.doc-fail { color: var(--red); }
+.doc-info { color: var(--muted); }
+.doc-fix { padding: 0.2rem 0.5rem; font-size: 0.64rem; }
+
+.gd-opts { display: flex; gap: 0.4rem; align-items: center; }
+.gd-opts input {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.74rem;
+  padding: 0.3rem 0.5rem;
+}
+.gd-opts input:focus { outline: none; border-color: var(--bright); }
+.gd-opts .btn { padding: 0.28rem 0.6rem; font-size: 0.64rem; }
+
 /* Game detail view */
 #gd-banner {
   width: 100%;

@@ -647,7 +647,28 @@ async function openAchievements(appid, name) {
   rows.push(
     `<div class="gd-row" id="gd-hltb-row" hidden><span class="gd-label">HLTB</span><span class="gd-value" id="gd-hltb"></span></div>`
   );
+  if (g.installed_on) {
+    rows.push(
+      `<div class="gd-row"><span class="gd-label">${t("Launch options")}</span><span class="gd-value gd-opts"><input id="gd-opts-input" type="text" placeholder="-dx11 -windowed …" spellcheck="false" /><button class="btn" id="gd-opts-save">${t("Save")}</button></span></div>`
+    );
+  }
   $("#gd-info").innerHTML = rows.join("");
+  const optsInput = $("#gd-opts-input");
+  if (optsInput) {
+    api(`/api/launchopts/${g.appid}`).then((r) => (optsInput.value = r.opts || "")).catch(() => {});
+    $("#gd-opts-save").addEventListener("click", async () => {
+      try {
+        await api(`/api/launchopts/${g.appid}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ opts: optsInput.value }),
+        });
+        toast(t("Launch options saved."), "ok");
+      } catch (err) {
+        toast(t(err.message), "err");
+      }
+    });
+  }
 
   // Handlinger
   const acts = [];
@@ -859,6 +880,32 @@ async function loadCrossover() {
           : ` · ${t("no auto-backup yet")}`) +
         (ab.last_error ? ` · <span class="ab-err">${t("error")}: ${esc(ab.last_error)}</span>` : "")
       : "";
+    const econ = document.getElementById("cache-econ") || (() => {
+      const d = document.createElement("div");
+      d.id = "cache-econ";
+      d.className = "autobackup-status";
+      $("#autobackup-status").after(d);
+      return d;
+    })();
+    econ.innerHTML =
+      t("Disk: live caches {0} · backups {1}", fmtBytes(data.caches_total_bytes || 0), fmtBytes(data.backups_total_bytes || 0)) +
+      ` <button class="btn" id="prune-btn" style="margin-left:0.6rem">${t("Prune old backups (keep 3)")}</button>`;
+    document.getElementById("prune-btn").addEventListener("click", async () => {
+      const bottle = data.bottles[0]?.name;
+      if (!bottle) return;
+      if (!confirm(t("Delete all but the 3 newest backups for \"{0}\"?", bottle))) return;
+      try {
+        const r = await api("/api/crossover/prune", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bottle, keep: 3 }),
+        });
+        toast(t("Pruned {0} backup(s) — {1} freed.", r.deleted, fmtBytes(r.freed_bytes)), "ok");
+        loadCrossover();
+      } catch (err) {
+        toast(t(err.message), "err");
+      }
+    });
     renderBottles(data);
   } catch (err) {
     el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
@@ -930,6 +977,7 @@ function bottleHtml(b) {
     "Restore latest"
   )}</button>
         <button class="btn" data-act="clean">${t("Clean bottle temp")}</button>
+        <button class="btn" data-act="doctor">${t("Run Bottle Doctor")}</button>
         <button class="btn" data-act="clearcache" ${
           b.has_cache && b.backups.length ? "" : "disabled"
         } title="${t("Frees disk space. Requires a backup first — restore brings the cache back instantly.")}">${t(
@@ -941,6 +989,30 @@ function bottleHtml(b) {
 }
 
 $("#crossover-list").addEventListener("click", async (e) => {
+  const fixBtn = e.target.closest(".doc-fix");
+  if (fixBtn) {
+    fixBtn.disabled = true;
+    fixBtn.textContent = t("Working…");
+    try {
+      const r = await api("/api/crossover/fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bottle: fixBtn.dataset.bottle, fix: fixBtn.dataset.fix }),
+      });
+      toast(
+        r.fixed
+          ? t("Fixed: {0}", r.fixed.join(", ") || "-")
+          : t("Cleaned up: {0} freed ({1} files).", fmtBytes(r.freed_bytes || 0), r.files_removed || 0),
+        "ok"
+      );
+      fixBtn.textContent = t("Done");
+    } catch (err) {
+      toast(t(err.message), "err");
+      fixBtn.disabled = false;
+      fixBtn.textContent = t("Fix it");
+    }
+    return;
+  }
   const btn = e.target.closest("button[data-act]");
   if (!btn) return;
   const bottle = btn.closest(".bottle").dataset.bottle;
@@ -949,6 +1021,28 @@ $("#crossover-list").addEventListener("click", async (e) => {
   const label = btn.textContent;
   btn.textContent = t("Working…");
   try {
+    if (act === "doctor") {
+      const r = await api(`/api/crossover/doctor/${encodeURIComponent(bottle)}`);
+      const box = btn.closest(".bottle").querySelector(".doctor-results") || (() => {
+        const d = document.createElement("div");
+        d.className = "doctor-results";
+        btn.closest(".actions").after(d);
+        return d;
+      })();
+      box.innerHTML = r.checks
+        .map(
+          (c) =>
+            `<div class="doc-line doc-${c.status}">[${c.status.toUpperCase()}] ${esc(c.message)}${
+              c.fix
+                ? ` <button class="btn doc-fix" data-fix="${c.fix}" data-bottle="${esc(bottle)}">${t("Fix it")}</button>`
+                : ""
+            }</div>`
+        )
+        .join("");
+      btn.disabled = false;
+      btn.textContent = label;
+      return;
+    }
     if (act === "backup") {
       const r = await api("/api/crossover/backup", {
         method: "POST",

@@ -203,6 +203,19 @@ const DICT = {
     "Shader cache restored from backup ({0}) — launching without recompile…":
       "Shader-cache gendannet fra backup ({0}) — starter uden genkompilering…",
 
+    // Doctor, prune, launch options
+    "Run Bottle Doctor": "K\u00f8r Bottle Doctor",
+    "Fix it": "Fix det",
+    "Done": "F\u00e6rdig",
+    "Fixed: {0}": "Fixet: {0}",
+    "Disk: live caches {0} \u00b7 backups {1}": "Disk: aktive caches {0} \u00b7 backups {1}",
+    "Prune old backups (keep 3)": "Ryd gamle backups (behold 3)",
+    "Delete all but the 3 newest backups for \"{0}\"?": "Slet alle undtagen de 3 nyeste backups for \"{0}\"?",
+    "Pruned {0} backup(s) \u2014 {1} freed.": "Ryddede {0} backup(s) \u2014 {1} frigjort.",
+    "Launch options": "Launch options",
+    "Save": "Gem",
+    "Launch options saved.": "Launch options gemt.",
+
     // Anticheat
     "Anticheat": "Anticheat",
     "Community data from AreWeAntiCheatYet (Linux/Proton; CrossOver is typically the same or stricter)":

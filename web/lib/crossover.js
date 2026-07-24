@@ -447,6 +447,44 @@ async function dirOrFileSize(target) {
   return { bytes, files };
 }
 
+// Prune old backups: keep only the newest `keep` per bottle (manual + auto).
+export async function pruneBackups(bottleName, keep = 3) {
+  const backups = await listBackups(bottleName);
+  const toDelete = backups.slice(keep);
+  let freed = 0;
+  for (const b of toDelete) {
+    const dir = path.join(
+      BACKUP_ROOT,
+      bottleName.replace(/[^A-Za-z0-9._-]/g, "_"),
+      b.id
+    );
+    freed += b.total_bytes || 0;
+    await fsp.rm(dir, { recursive: true, force: true });
+  }
+  return { deleted: toDelete.length, kept: Math.min(keep, backups.length), freed_bytes: freed };
+}
+
+// Total disk used by all shader-cache backups.
+export async function backupsTotalBytes() {
+  let bytes = 0;
+  async function walk(d, depth) {
+    if (depth > 6) return;
+    let ents;
+    try {
+      ents = await fsp.readdir(d, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of ents) {
+      const full = path.join(d, e.name);
+      if (e.isDirectory()) await walk(full, depth + 1);
+      else if (e.isFile()) bytes += (await fsp.stat(full).catch(() => ({ size: 0 }))).size;
+    }
+  }
+  await walk(BACKUP_ROOT, 0);
+  return bytes;
+}
+
 // Auto-rewarm: before launching a bottle game, restore any D3DMetal cache
 // that is missing or clearly degraded (< half of the newest backup's size).
 // A restore takes seconds; a recompile takes minutes.
