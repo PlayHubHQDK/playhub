@@ -73,10 +73,11 @@ export function affiliatesActive() {
 
 export function instantGamingLink(title) {
   const ref = process.env.AFFILIATE_IG_REF;
-  if (!ref) return null;
-  return `https://www.instant-gaming.com/en/search/?q=${encodeURIComponent(
-    title
-  )}&igr=${encodeURIComponent(ref)}`;
+  const show =
+    Boolean(ref) || /^(1|true|yes)$/i.test(process.env.SHOW_INSTANT_GAMING || "");
+  if (!show) return null;
+  const base = `https://www.instant-gaming.com/en/search/?q=${encodeURIComponent(title)}`;
+  return ref ? `${base}&igr=${encodeURIComponent(ref)}` : base;
 }
 
 async function itadLookup(key, appid) {
@@ -113,7 +114,11 @@ export async function getDeals(appidTitlePairs) {
   for (const { appid, title } of appidTitlePairs) {
     const hit = cache[appid];
     if (hit && now - hit.fetchedAt < DEALS_TTL) {
-      result[appid] = { ...hit.data, ig_url: instantGamingLink(title) };
+      result[appid] = {
+        ...hit.data,
+        ig_url: instantGamingLink(title),
+        ig_affiliate: Boolean(process.env.AFFILIATE_IG_REF),
+      };
     } else {
       toLookup.push({ appid, title });
     }
@@ -159,7 +164,11 @@ export async function getDeals(appidTitlePairs) {
           cache[appid] = { fetchedAt: Date.now(), data };
           dirty = true;
           const title = toLookup.find((t) => t.appid === appid)?.title || "";
-          result[appid] = { ...data, ig_url: instantGamingLink(title) };
+          result[appid] = {
+            ...data,
+            ig_url: instantGamingLink(title),
+            ig_affiliate: Boolean(process.env.AFFILIATE_IG_REF),
+          };
         }
       } catch {
         /* prices batch fejlede — cache intet */

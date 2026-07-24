@@ -557,7 +557,7 @@ async function loadDeals(recs) {
       }
       if (d.ig_url) {
         parts.push(
-          `<a href="${d.ig_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Instant Gaming 💰 <small>${t(
+          `<a href="${d.ig_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Instant Gaming${d.ig_affiliate ? " 💰" : ""} <small>${t(
             "(grey market)"
           )}</small> ↗</a>`
         );
