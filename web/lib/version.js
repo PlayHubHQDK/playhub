@@ -47,6 +47,15 @@ async function checkLatest() {
   lastCheck = Date.now();
 }
 
+// "git" = clone/install.sh (in-app update works); "brew" = Homebrew keg
+// (update via `brew upgrade playhub`); "package" = anything else.
+export function installMethod() {
+  const root = path.join(__dirname, "..", "..");
+  if (fs.existsSync(path.join(root, ".git"))) return "git";
+  if (root.includes("/Cellar/") || root.includes("/homebrew/")) return "brew";
+  return "package";
+}
+
 export async function getVersionInfo() {
   if (Date.now() - lastCheck > CHECK_INTERVAL) await checkLatest();
   return {
@@ -54,5 +63,6 @@ export async function getVersionInfo() {
     latest,
     update_available: Boolean(latest && newer(latest, current)),
     releases_url: `https://github.com/${REPO}/releases`,
+    install_method: installMethod(),
   };
 }

@@ -55,6 +55,18 @@ dark-themed dashboard that runs entirely on your Mac.
 
 ## Install
 
+### Homebrew
+
+```bash
+brew install playhubhqdk/tap/playhub
+brew services start playhub
+```
+
+Update later with `brew upgrade playhub`. Your settings and caches live in
+Homebrew's `var/playhub` and survive upgrades.
+
+### From source
+
 ```bash
 git clone https://github.com/PlayHubHQDK/playhub.git
 cd playhub

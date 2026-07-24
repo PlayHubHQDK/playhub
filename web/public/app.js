@@ -1301,9 +1301,16 @@ async function checkForUpdate() {
     if (!v.update_available) return;
     const banner = document.createElement("div");
     banner.className = "update-banner";
-    banner.innerHTML = `${t("New version available: {0} (you have {1})", "v" + v.latest, "v" + v.current)} <a href="${v.releases_url}" target="_blank" rel="noopener">${t("See what's new ↗")}</a> <button class="btn primary" id="update-now">${t("Update now")}</button> <button class="update-dismiss" aria-label="Dismiss">✕</button>`;
+    // Brew/package installs can't git pull — point to the right update path instead.
+    const action =
+      v.install_method === "git"
+        ? `<button class="btn primary" id="update-now">${t("Update now")}</button>`
+        : v.install_method === "brew"
+        ? `<code>brew upgrade playhub</code>`
+        : "";
+    banner.innerHTML = `${t("New version available: {0} (you have {1})", "v" + v.latest, "v" + v.current)} <a href="${v.releases_url}" target="_blank" rel="noopener">${t("See what's new ↗")}</a> ${action} <button class="update-dismiss" aria-label="Dismiss">✕</button>`;
     banner.querySelector(".update-dismiss").addEventListener("click", () => banner.remove());
-    banner.querySelector("#update-now").addEventListener("click", async (e) => {
+    banner.querySelector("#update-now")?.addEventListener("click", async (e) => {
       const b = e.target;
       b.disabled = true;
       b.textContent = t("Updating…");
