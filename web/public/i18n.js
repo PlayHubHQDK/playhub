@@ -203,6 +203,14 @@ const DICT = {
     "Shader cache restored from backup ({0}) — launching without recompile…":
       "Shader-cache gendannet fra backup ({0}) — starter uden genkompilering…",
 
+    // Wishlist
+    "Your Steam wishlist is empty.": "Din Steam-\u00f8nskeliste er tom.",
+    "Your wishlist ({0}) - set a target price to get a macOS alert":
+      "Din \u00f8nskeliste ({0}) - s\u00e6t en m\u00e5lpris og f\u00e5 en macOS-besked",
+    "target": "m\u00e5lpris",
+    "Target saved - you will get a macOS notification when the price drops.":
+      "M\u00e5lpris gemt - du f\u00e5r en macOS-notifikation, n\u00e5r prisen falder.",
+
     // Doctor, prune, launch options
     "Run Bottle Doctor": "K\u00f8r Bottle Doctor",
     "Fix it": "Fix det",

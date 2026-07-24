@@ -389,8 +389,66 @@ $("#recs-grid").addEventListener("click", (e) => {
   if (card) openAchievements(Number(card.dataset.appid), card.dataset.name);
 });
 
+// --- Wishlist + prisalarmer ---
+async function loadWishlist() {
+  let box = document.getElementById("wishlist-box");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "wishlist-box";
+    document.querySelector("#discover .discover-note").after(box);
+  }
+  try {
+    const wl = await api("/api/wishlist");
+    if (!wl.enabled) {
+      box.innerHTML = "";
+      return;
+    }
+    if (!wl.items.length) {
+      box.innerHTML = `<div class="empty">${t("Your Steam wishlist is empty.")}</div>`;
+      return;
+    }
+    box.innerHTML =
+      `<h3 class="subhead">${t("Your wishlist ({0}) - set a target price to get a macOS alert", wl.total)}</h3>` +
+      `<div class="wl-table">` +
+      wl.items
+        .map(
+          (w) => `
+        <div class="wl-row ${w.alert ? "wl-alert" : ""}" data-appid="${w.appid}">
+          <span class="wl-name">${w.alert ? "[ALERT] " : ""}${esc(w.name)}</span>
+          <span class="wl-price">${
+            w.best && typeof w.best.price_dkk === "number"
+              ? `${fmtPrice(w.best.price_dkk, w.best.price_currency)} <span class="dim">${t("at")} ${esc(w.best.shop)}</span>`
+              : `<span class="dim">${t("price loading…")}</span>`
+          }</span>
+          <span class="wl-target"><input type="number" step="0.5" min="0" placeholder="${t("target")}" value="${
+            w.target ?? ""
+          }" data-appid="${w.appid}" class="wl-input" /></span>
+        </div>`
+        )
+        .join("") +
+      `</div>`;
+    for (const inp of box.querySelectorAll(".wl-input")) {
+      inp.addEventListener("change", async () => {
+        try {
+          await api("/api/wishlist/target", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ appid: Number(inp.dataset.appid), target: inp.value === "" ? null : Number(inp.value) }),
+          });
+          toast(t("Target saved - you will get a macOS notification when the price drops."), "ok");
+        } catch (err) {
+          toast(t(err.message), "err");
+        }
+      });
+    }
+  } catch {
+    box.innerHTML = "";
+  }
+}
+
 // --- Buy ideas ---
 async function loadDiscover() {
+  loadWishlist();
   const grid = $("#discover-grid");
   try {
     const data = await api("/api/discover");

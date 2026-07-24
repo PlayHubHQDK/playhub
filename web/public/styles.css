@@ -791,6 +791,34 @@ button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .hltb-link { color: var(--muted); text-decoration: none; margin-left: auto; }
 .hltb-link:hover { color: var(--bright); }
 
+/* Wishlist */
+.wl-table { border: 1px solid var(--border); margin-bottom: 1.4rem; }
+.wl-row {
+  display: grid;
+  grid-template-columns: 1fr 220px 110px;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+.wl-row:last-child { border-bottom: none; }
+.wl-row.wl-alert { background: var(--bg-2); }
+.wl-row.wl-alert .wl-name { color: var(--bright); font-weight: 700; }
+.wl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl-price .dim, .wl-row .dim { color: var(--muted); }
+.wl-input {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.74rem;
+  padding: 0.25rem 0.45rem;
+}
+.wl-input:focus { outline: none; border-color: var(--bright); }
+@media (max-width: 700px) { .wl-row { grid-template-columns: 1fr 130px 80px; } }
+
 /* Bottle Doctor */
 .doctor-results { margin-top: 0.6rem; }
 .doc-line {

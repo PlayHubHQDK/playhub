@@ -50,6 +50,7 @@ import { getCompatCached, enqueueCompat } from "./lib/maccompat.js";
 import { getLocalLibrary, localSteamAvailable } from "./lib/localsteam.js";
 import { getAnticheat } from "./lib/anticheat.js";
 import { runDoctor, applyFix } from "./lib/doctor.js";
+import { getWishlist, setTarget, checkPriceAlerts, startPriceAlertWatch } from "./lib/wishlist.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -134,6 +135,25 @@ app.post(
     const { bottle, keep } = req.body || {};
     if (!bottle) return res.status(400).json({ error: "Missing 'bottle'." });
     res.json(await pruneBackups(bottle, Math.max(1, Number(keep) || 3)));
+  })
+);
+
+// Wishlist + prisalarmer
+app.get(
+  "/api/wishlist",
+  wrap(async (req, res) => {
+    res.json(await getWishlist());
+  })
+);
+app.post("/api/wishlist/target", (req, res) => {
+  const { appid, target } = req.body || {};
+  if (!Number.isInteger(Number(appid))) return res.status(400).json({ error: "bad appid" });
+  res.json(setTarget(Number(appid), target));
+});
+app.post(
+  "/api/wishlist/check",
+  wrap(async (req, res) => {
+    res.json(await checkPriceAlerts());
   })
 );
 
@@ -587,6 +607,7 @@ const PORT = process.env.PORT || 4173;
 const server = app.listen(PORT, "127.0.0.1", () => {
   console.log(`PlayHub running at http://127.0.0.1:${PORT}`);
   startAutoBackup();
+  startPriceAlertWatch();
 });
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
