@@ -51,6 +51,7 @@ import { getLocalLibrary, localSteamAvailable } from "./lib/localsteam.js";
 import { getAnticheat } from "./lib/anticheat.js";
 import { runDoctor, applyFix } from "./lib/doctor.js";
 import { getWishlist, setTarget, checkPriceAlerts, startPriceAlertWatch } from "./lib/wishlist.js";
+import { getYearReview, getAchievementHunt } from "./lib/yearreview.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -154,6 +155,19 @@ app.post(
   "/api/wishlist/check",
   wrap(async (req, res) => {
     res.json(await checkPriceAlerts());
+  })
+);
+
+app.get(
+  "/api/yearreview",
+  wrap(async (req, res) => {
+    res.json(await getYearReview());
+  })
+);
+app.get(
+  "/api/achievement-hunt",
+  wrap(async (req, res) => {
+    res.json(await getAchievementHunt());
   })
 );
 

@@ -1467,6 +1467,110 @@ function showSetupWizard() {
   });
 }
 
+// --- Year card + achievement hunt (Stats-fanen, lazy) ---
+let statsExtrasLoaded = false;
+$$(".tab").forEach((t2) =>
+  t2.addEventListener("click", () => {
+    if (t2.dataset.target === "stats" && !statsExtrasLoaded) {
+      statsExtrasLoaded = true;
+      loadYearCard();
+      loadHunt();
+    }
+  })
+);
+
+function cLine(ctx, x, y, text, color, size, bold) {
+  ctx.fillStyle = color;
+  ctx.font = `${bold ? "700 " : ""}${size}px "SF Mono", Menlo, monospace`;
+  ctx.fillText(text, x, y);
+}
+
+async function loadYearCard() {
+  try {
+    const d = await api("/api/yearreview");
+    const c = $("#year-card");
+    const ctx = c.getContext("2d");
+    // Baggrund + scanlines
+    ctx.fillStyle = "#070b07";
+    ctx.fillRect(0, 0, 1200, 630);
+    ctx.fillStyle = "rgba(180,255,180,0.02)";
+    for (let y = 0; y < 630; y += 3) ctx.fillRect(0, y, 1200, 1);
+    // Ramme
+    ctx.strokeStyle = "#2c522c";
+    ctx.strokeRect(24, 24, 1152, 582);
+    // Header
+    cLine(ctx, 60, 92, "PLAYHUB_", "#4ef04e", 40, true);
+    cLine(ctx, 60, 130, `// YOUR ${d.year} IN GAMING`, "#5a8a5a", 22);
+    // Nøgletal
+    let y = 200;
+    cLine(ctx, 60, y, `GAMES PLAYED ${d.year}`, "#5a8a5a", 17); y += 34;
+    cLine(ctx, 60, y, String(d.games_played_this_year), "#4ef04e", 44, true); y += 56;
+    if (d.achievements_this_year !== null) {
+      cLine(ctx, 60, y, `ACHIEVEMENTS UNLOCKED ${d.year}`, "#5a8a5a", 17); y += 34;
+      cLine(ctx, 60, y, String(d.achievements_this_year), "#4ef04e", 44, true); y += 56;
+    }
+    cLine(ctx, 60, y, "LIFETIME", "#5a8a5a", 17); y += 30;
+    cLine(ctx, 60, y, `${d.lifetime_hours.toLocaleString()} HOURS · ${d.library_size} GAMES` +
+      (d.most_played ? ` · TOP: ${d.most_played.name.toUpperCase().slice(0, 24)} (${d.most_played.hours}H)` : ""),
+      "#c4ecc4", 19, true);
+    // Roster (højre kolonne)
+    let ry = 200;
+    cLine(ctx, 640, ry, `THIS YEAR'S ROSTER`, "#5a8a5a", 17); ry += 34;
+    for (const g of d.roster) {
+      cLine(ctx, 640, ry, `> ${g.name.slice(0, 34)}`, "#c4ecc4", 19); ry += 30;
+    }
+    if (d.achievements_per_game.length) {
+      ry += 14;
+      cLine(ctx, 640, ry, "MOST ACHIEVEMENTS", "#5a8a5a", 15); ry += 26;
+      for (const a of d.achievements_per_game) {
+        cLine(ctx, 640, ry, `${a.name.slice(0, 28)}: +${a.unlocked}`, "#4ef04e", 17); ry += 26;
+      }
+    }
+    // Footer
+    cLine(ctx, 60, 572, "playhubhqdk.github.io/playhub", "#5a8a5a", 16);
+    cLine(ctx, 980, 572, `${d.year} (so far)`, "#5a8a5a", 16);
+
+    $("#year-download").addEventListener("click", () => {
+      c.toBlob((blob) => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `playhub-${d.year}.png`;
+        a.click();
+      });
+    });
+  } catch (err) {
+    $("#year-card").insertAdjacentHTML("afterend", `<div class="empty">${esc(t(err.message))}</div>`);
+  }
+}
+
+async function loadHunt() {
+  const el = $("#hunt-list");
+  try {
+    const h = await api("/api/achievement-hunt");
+    if (!h.enabled) {
+      el.innerHTML = `<div class="empty">${esc(t(h.reason || ""))}</div>`;
+      return;
+    }
+    if (!h.hunt.length) {
+      el.innerHTML = `<div class="empty">${t("No easy unlocks found — impressive completion!")}</div>`;
+      return;
+    }
+    el.innerHTML = h.hunt
+      .map(
+        (x) => `
+      <div class="hunt-row">
+        <span class="hunt-pct">${x.global_pct}%</span>
+        <span class="hunt-info"><strong>${esc(x.name)}</strong> <span class="dim">· ${esc(x.game)}</span>${
+          x.description ? `<br><span class="dim">${esc(x.description)}</span>` : ""
+        }</span>
+      </div>`
+      )
+      .join("");
+  } catch (err) {
+    el.innerHTML = `<div class="empty">${esc(t(err.message))}</div>`;
+  }
+}
+
 // --- Boot ---
 (async () => {
   try {
@@ -1488,4 +1592,8 @@ function showSetupWizard() {
     const tab = document.querySelector(`.tab[data-target="${hashTab}"]`);
     if (tab) tab.click();
   }
+  window.addEventListener("hashchange", () => {
+    const t2 = document.querySelector(`.tab[data-target="${location.hash.slice(1)}"]`);
+    if (t2) t2.click();
+  });
 })();

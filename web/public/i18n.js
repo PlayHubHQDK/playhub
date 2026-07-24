@@ -203,6 +203,12 @@ const DICT = {
     "Shader cache restored from backup ({0}) — launching without recompile…":
       "Shader-cache gendannet fra backup ({0}) — starter uden genkompilering…",
 
+    // Year card + hunt
+    "Your year in gaming": "Dit \u00e5r i spil",
+    "Download as PNG": "Download som PNG",
+    "Achievement hunt \u2014 easiest unlocks you're missing": "Achievement-jagt \u2014 dine nemmeste manglende",
+    "No easy unlocks found \u2014 impressive completion!": "Ingen nemme achievements fundet \u2014 imponerende gennemf\u00f8rsel!",
+
     // Wishlist
     "Your Steam wishlist is empty.": "Din Steam-\u00f8nskeliste er tom.",
     "Your wishlist ({0}) - set a target price to get a macOS alert":

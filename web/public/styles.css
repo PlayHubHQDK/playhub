@@ -791,6 +791,25 @@ button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .hltb-link { color: var(--muted); text-decoration: none; margin-left: auto; }
 .hltb-link:hover { color: var(--bright); }
 
+/* Year card + hunt */
+#year-card { width: 100%; max-width: 760px; height: auto; border: 1px solid var(--border); display: block; }
+.hunt-row {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.78rem;
+}
+.hunt-row:last-child { border-bottom: none; }
+.hunt-pct {
+  color: var(--bright);
+  font-weight: 700;
+  min-width: 56px;
+  font-size: 0.95rem;
+}
+.hunt-info .dim { color: var(--muted); font-size: 0.72rem; }
+
 /* Wishlist */
 .wl-table { border: 1px solid var(--border); margin-bottom: 1.4rem; }
 .wl-row {
