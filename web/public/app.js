@@ -663,6 +663,57 @@ async function openAchievements(appid, name) {
     );
   }
 
+  // Ydelse på din Mac: egne beviser > community-rapporter > kalibreret gæt
+  {
+    const parts = [];
+    if (g.proven_on_this_mac) {
+      parts.push(
+        `<span class="perf-chip proven">✓ ${t("Runs on your Mac")}</span> ${fmtHours(
+          g.playtime_forever_hours || 0
+        )}${g.shader_cache?.size_bytes ? " · shader cache ✓" : ""}`
+      );
+    } else if (g.perf_expectation) {
+      const LVL = {
+        easy: ["easy", t("Easy for your Mac")],
+        good: ["good", t("Should run well on your Mac")],
+        heavy: ["heavy", t("Heavy — expect lowered settings")],
+        edge: ["edge", t("Borderline on your Mac")],
+      }[g.perf_expectation.level];
+      let note = "";
+      if (g.perf_expectation.notes?.includes("fanless_throttle"))
+        note += " · " + t("fanless: may throttle in long sessions");
+      if (g.perf_expectation.notes?.includes("low_ram")) note += " · " + t("8 GB RAM is tight");
+      if (LVL) parts.push(`<span class="perf-chip ${LVL[0]}">${LVL[1]}</span>${note}`);
+    }
+    if (g.perf_reports?.total) {
+      const s = g.perf_reports.same_gen
+        ? g.perf_reports.same_gen_summary
+        : g.perf_reports.summary;
+      const sum = Object.entries(s)
+        .map(([k, v]) => `${v}× ${k}`)
+        .join(", ");
+      parts.push(
+        `<span class="dim">${t("{0} community reports", g.perf_reports.total)}${
+          g.perf_reports.same_gen ? ` (M${MACHINE?.gen}: ${sum})` : ` (${sum})`
+        }</span>`
+      );
+    }
+    if (MACHINE?.chip) {
+      const u = new URL("https://github.com/PlayHubHQDK/playhub/issues/new");
+      u.searchParams.set("template", "performance-report.yml");
+      u.searchParams.set("title", `[perf] ${g.name}`);
+      u.searchParams.set("game", g.name);
+      u.searchParams.set("appid", String(g.appid));
+      u.searchParams.set("device", MACHINE.device || "");
+      u.searchParams.set("chip", MACHINE.chip);
+      u.searchParams.set("ram", String(MACHINE.ram_gb || ""));
+      parts.push(
+        `<a href="${u.href}" target="_blank" rel="noopener">${t("Report how it runs")} ↗</a>`
+      );
+    }
+    if (parts.length) row(t("On your Mac"), parts.join("<br>"));
+  }
+
   if (g.anticheat) {
     const st = g.anticheat.status;
     const cls = st === "Denied" || st === "Broken" ? "neg" : st === "Planned" ? "mixed" : "pos";
@@ -1229,7 +1280,14 @@ function renderStats(games) {
       <span class="stat-sub">${t(
         "{0} different games",
         games.filter((g) => g.playtime_2weeks_min > 0).length
-      )}</span></div>`;
+      )}</span></div>
+    ${
+      MACHINE?.label
+        ? `<div class="stat-tile"><span class="stat-label">${t("Your Mac")}</span>
+      <strong>${esc(MACHINE.chip)}${MACHINE.gpu_cores ? ` (${MACHINE.gpu_cores} GPU)` : ""}</strong>
+      <span class="stat-sub">${esc(MACHINE.device || "")} · ${MACHINE.ram_gb} GB${MACHINE.fanless ? ` · ${t("fanless")}` : ""}</span></div>`
+        : ""
+    }`;
 
   const top10 = top.slice(0, 10);
   const maxMin = top10[0]?.playtime_forever_min || 1;
@@ -1600,6 +1658,7 @@ async function loadHunt() {
 }
 
 // --- Boot ---
+let MACHINE = null;
 (async () => {
   try {
     const s = await api("/api/setup/status");
@@ -1610,6 +1669,9 @@ async function loadHunt() {
   } catch {
     /* server nede — lad de normale kald vise fejl */
   }
+  try {
+    MACHINE = await api("/api/machine");
+  } catch {}
   loadLibrary();
   loadNative();
   loadCrossover();

@@ -313,6 +313,20 @@ input[type="search"]:focus { outline: none; border-color: var(--bright); }
 }
 .platform-chip.native { color: #9adf9a; }
 .platform-chip.pad { color: #8ac6ff; }
+.perf-chip {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--border);
+}
+.perf-chip.proven { color: var(--bright); border-color: var(--bright); }
+.perf-chip.easy { color: #9adf9a; }
+.perf-chip.good { color: #b8e64e; }
+.perf-chip.heavy { color: var(--amber); }
+.perf-chip.edge { color: var(--red); }
 .platform-chip.pad.partial { color: var(--amber); }
 .platform-chip.xo.rating-perfect { color: var(--bright); }
 .platform-chip.xo.rating-playable { color: #b8e64e; }

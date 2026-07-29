@@ -52,6 +52,8 @@ import { getAnticheat } from "./lib/anticheat.js";
 import { runDoctor, applyFix } from "./lib/doctor.js";
 import { getWishlist, setTarget, checkPriceAlerts, startPriceAlertWatch } from "./lib/wishlist.js";
 import { getYearReview, getAchievementHunt } from "./lib/yearreview.js";
+import { getMachine, expectation } from "./lib/machine.js";
+import { getPerfReports, reportsFor } from "./lib/perfdata.js";
 import {
   isConfigured,
   resolveSteamId,
@@ -262,6 +264,13 @@ app.get(
   })
 );
 
+app.get(
+  "/api/machine",
+  wrap(async (req, res) => {
+    res.json(await getMachine());
+  })
+);
+
 app.get("/api/config", (req, res) => {
   res.json({ ...appConfig, app_name: "PlayHub" });
 });
@@ -306,12 +315,23 @@ app.get(
     // Kick off (or refresh) background store-metadata enrichment,
     // and attach whatever metadata is already cached.
     enqueueEnrichment(data.games.map((g) => g.appid));
+    const mac = await getMachine();
+    const perfAll = await getPerfReports();
     const windowsOnly = [];
     for (const g of data.games) {
       const meta = getMeta(g.appid);
       // Platform + CrossOver-kompatibilitet
       g.mac_native = meta?.mac_native ?? null; // null = ikke beriget endnu
       g.controller_support = meta?.controller_support ?? null; // "full" | "partial" | null
+      // Ydelse på DENNE Mac: kalibreret forventning + egne beviser + community
+      g.perf_expectation = expectation(
+        { ...g, genres: meta?.genres, release_year: meta?.release_year },
+        mac
+      );
+      g.proven_on_this_mac = Boolean(
+        g.installed_on && (g.shader_cache?.size_bytes > 0 || g.playtime_forever_min > 0)
+      );
+      g.perf_reports = reportsFor(g.appid, mac, perfAll);
       if (g.mac_native === false) {
         windowsOnly.push(g.name);
         const compat = getCompatCached(g.name);

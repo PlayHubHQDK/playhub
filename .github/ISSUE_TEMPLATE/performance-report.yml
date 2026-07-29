@@ -1,0 +1,77 @@
+name: Game performance report
+description: Report how a game runs on your Mac (auto-filled by PlayHub)
+title: "[perf] "
+labels: ["perf-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! This feeds PlayHub's community performance data.
+        If you came from the app, most fields are already filled in.
+  - type: input
+    id: game
+    attributes:
+      label: Game
+    validations:
+      required: true
+  - type: input
+    id: appid
+    attributes:
+      label: Steam App ID
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Mac model
+      placeholder: MacBook Air
+    validations:
+      required: true
+  - type: input
+    id: chip
+    attributes:
+      label: Chip
+      placeholder: Apple M4
+    validations:
+      required: true
+  - type: input
+    id: ram
+    attributes:
+      label: RAM (GB)
+      placeholder: "16"
+    validations:
+      required: true
+  - type: dropdown
+    id: via
+    attributes:
+      label: Running via
+      options:
+        - Native macOS
+        - CrossOver
+        - Whisky
+        - GameHub
+        - Parallels / VM
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: rating
+    attributes:
+      label: How does it run?
+      options:
+        - perfect - smooth, no issues
+        - good - very playable, minor issues
+        - playable - runs, but compromises needed
+        - bad - not enjoyable / doesn't work
+    validations:
+      required: true
+  - type: input
+    id: fps
+    attributes:
+      label: Rough FPS (optional)
+      placeholder: "30-40"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (optional)
+      placeholder: Settings used, resolution, anything worth knowing
