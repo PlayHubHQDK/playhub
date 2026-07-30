@@ -144,6 +144,25 @@ app.post(
   })
 );
 
+// Manuelt skjulte/viste spil (supplerer junk-regex i UI'et)
+const HIDDEN_FILE = path.join(__dirname, "cache", "hidden.json");
+let hiddenGames = {};
+try {
+  hiddenGames = JSON.parse(fs.readFileSync(HIDDEN_FILE, "utf8"));
+} catch {}
+app.get("/api/hidden", (req, res) => res.json(hiddenGames));
+app.post("/api/hidden", (req, res) => {
+  const { appid, state } = req.body || {};
+  if (!Number.isInteger(Number(appid))) return res.status(400).json({ error: "bad appid" });
+  if (state === "hide" || state === "show") hiddenGames[appid] = state;
+  else delete hiddenGames[appid];
+  fs.promises
+    .mkdir(path.dirname(HIDDEN_FILE), { recursive: true })
+    .then(() => fs.promises.writeFile(HIDDEN_FILE, JSON.stringify(hiddenGames)))
+    .catch(() => {});
+  res.json({ ok: true, state: hiddenGames[appid] || null });
+});
+
 // Wishlist + prisalarmer
 app.get(
   "/api/wishlist",

@@ -92,7 +92,16 @@ async function loadLibrary() {
   try {
     const data = await api("/api/steam/library");
     libraryGames = data.games || [];
-    $("#library-count").textContent = `${data.game_count || 0} ${t("games")}`;
+    try {
+      hiddenMap = await api("/api/hidden");
+    } catch {}
+    for (const g of libraryGames) {
+      const ov = hiddenMap[g.appid];
+      g._junk = ov === "hide" || (JUNK_RE.test(g.name) && ov !== "show");
+    }
+    $("#library-count").textContent = `${
+      libraryGames.filter((g) => !g._junk).length
+    } ${t("games")}`;
     if (!libraryGames.length) {
       grid.innerHTML = `<div class="empty">${t(
         "Your Steam library looks empty. If you own games, your Steam profile's “Game details” privacy setting is probably not set to Public."
@@ -189,6 +198,7 @@ function renderRecent(games) {
 
 // Ting der støjer i tal og anbefalinger: demoer, soundtracks, servere m.m.
 const JUNK_RE = /\b(demo|soundtrack|ost|beta|playtest|dedicated server|sdk|benchmark|trailer|artbook|dlc)\b/i;
+let hiddenMap = {};
 
 function renderLibrary(games) {
   const grid = $("#library-grid");
@@ -200,8 +210,11 @@ function renderLibrary(games) {
     games = games.filter((g) => g.mac_native === false);
   } else if (libraryFilter === "controller") {
     games = games.filter((g) => g.controller_support === "full");
-  } else if (libraryFilter === "junk") {
-    games = games.filter((g) => JUNK_RE.test(g.name));
+  }
+  if (libraryFilter === "junk") {
+    games = games.filter((g) => g._junk);
+  } else {
+    games = games.filter((g) => !g._junk);
   }
   if (!games.length) {
     grid.innerHTML = `<div class="empty">${t("No games match.")}</div>`;
@@ -677,6 +690,34 @@ async function openAchievements(appid, name) {
         ? `<span class="platform-chip pad">PAD:FULL</span> ${t("Full controller support")}`
         : `<span class="platform-chip pad partial">PAD:PART</span> ${t("Partial controller support")}`
     );
+  }
+
+  // Skjul/vis i biblioteket (junk-regex kan overstyres per spil)
+  {
+    const isJunk = g._junk;
+    row(
+      t("Library"),
+      `<button class="btn" id="gd-hide-btn" data-appid="${g.appid}" data-next="${
+        isJunk ? "show" : "hide"
+      }">${isJunk ? t("Show in library again") : t("🧹 Hide from library")}</button>`
+    );
+    setTimeout(() => {
+      $("#gd-hide-btn")?.addEventListener("click", async (ev) => {
+        const btn = ev.target;
+        try {
+          await api("/api/hidden", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ appid: Number(btn.dataset.appid), state: btn.dataset.next }),
+          });
+          toast(btn.dataset.next === "hide" ? t("Hidden — find it under 🧹 Junk.") : t("Shown in library again."), "ok");
+          loadLibrary();
+          achModal.hidden = true;
+        } catch (err) {
+          toast(t(err.message), "err");
+        }
+      });
+    }, 0);
   }
 
   // Ydelse på din Mac: egne beviser > community-rapporter > kalibreret gæt
@@ -1301,6 +1342,7 @@ function hideTip() {
 }
 
 function renderStats(games) {
+  games = games.filter((g) => !g._junk);
   const played = games.filter((g) => g.playtime_forever_min > 0);
   const totalMin = played.reduce((s, g) => s + g.playtime_forever_min, 0);
   const totalH = Math.round(totalMin / 60);
