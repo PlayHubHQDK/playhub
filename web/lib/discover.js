@@ -64,7 +64,7 @@ function enqueueDetails(appids) {
   const now = Date.now();
   const missing = appids.filter((id) => {
     const d = cache.details[id];
-    return !d || now - d.fetchedAt > PRICE_TTL;
+    return !d || now - d.fetchedAt > PRICE_TTL || (!d.missing && d.mac_native === undefined);
   });
   detailQueue = [...new Set([...detailQueue, ...missing])];
   if (!detailRunning && detailQueue.length) runDetailQueue();
@@ -76,7 +76,7 @@ async function runDetailQueue() {
       const id = detailQueue.shift();
       try {
         const res = await fetch(
-          `https://store.steampowered.com/api/appdetails?appids=${id}&cc=dk&l=english&filters=price_overview,metacritic,genres,release_date,basic`
+          `https://store.steampowered.com/api/appdetails?appids=${id}&cc=dk&l=english&filters=price_overview,metacritic,genres,release_date,basic,platforms`
         );
         if (res.status === 429) {
           detailQueue.unshift(id);
@@ -96,6 +96,7 @@ async function runDetailQueue() {
                   : null,
                 price_currency: d.data.price_overview?.currency || null,
                 discount_pct: d.data.price_overview?.discount_percent || 0,
+                mac_native: Boolean(d.data.platforms?.mac),
                 metacritic: d.data.metacritic?.score ?? null,
                 genres: (d.data.genres || []).map((g) => g.description),
                 release_year:
@@ -175,6 +176,8 @@ export async function discover(ownedAppids, profile, { limit = 18 } = {}) {
       t.price_currency = d.price_currency || "EUR";
       t.discount_pct = d.discount_pct;
       t.metacritic = d.metacritic;
+      t.mac_native = d.mac_native ?? null;
+      t.genres = d.genres || [];
       t.release_year = d.release_year;
       t.short_description = d.short_description;
       enriched++;

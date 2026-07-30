@@ -1,6 +1,6 @@
 {
   "name": "playhub-web",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "description": "Local dark-themed GameHub web interface: Steam library, native Mac games, CrossOver bottles + D3DMetal shader-cache tools, Xbox Cloud/Remote Play shortcuts.",
   "type": "module",
   "main": "server.js",

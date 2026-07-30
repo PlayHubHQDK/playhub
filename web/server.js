@@ -509,12 +509,36 @@ app.get(
     for (const p of Object.entries(buildGenreProfile(data.games))) {
       profile[p[0]] = p[1];
     }
-    res.json(
-      await discover(
-        data.games.map((g) => g.appid),
-        profile
-      )
+    const result = await discover(
+      data.games.map((g) => g.appid),
+      profile
     );
+    // Mac-pasform: native/CrossOver-rating/anticheat + forventning for DENNE maskine
+    const mac = await getMachine();
+    const winNames = [];
+    for (const r of result.recommendations) {
+      if (r.mac_native === false) {
+        winNames.push(r.name);
+        const compat = getCompatCached(r.name);
+        if (compat) {
+          r.crossover_rating = compat.rating;
+        }
+        const ac = getAnticheat(r.appid, r.name);
+        if (ac) r.anticheat = ac;
+      }
+      const exp = expectation(r, mac);
+      r.perf_expectation = exp;
+      const acBad = r.anticheat && ["Denied", "Broken"].includes(r.anticheat.status);
+      r.mac_fit = acBad
+        ? false
+        : r.mac_native === true
+        ? !exp || ["easy", "good"].includes(exp.level)
+        : r.mac_native === false
+        ? ["perfect", "playable"].includes(r.crossover_rating || "") && exp?.level !== "edge"
+        : null; // ukendt endnu (berigelse i gang)
+    }
+    enqueueCompat(winNames);
+    res.json(result);
   })
 );
 

@@ -440,19 +440,39 @@ async function loadWishlist() {
 }
 
 // --- Buy ideas ---
-async function loadDiscover() {
-  loadWishlist();
+let discoverData = [];
+let discoverFilter = "all";
+
+$$(".discover-filters .filter-chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    $$(".discover-filters .filter-chip").forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+    discoverFilter = chip.dataset.dfilter;
+    renderDiscoverCards();
+    loadDeals(discoverData);
+  });
+});
+
+function renderDiscoverCards() {
   const grid = $("#discover-grid");
-  try {
-    const data = await api("/api/discover");
-    if (!data.recommendations.length) {
+  let list = discoverData;
+  if (discoverFilter === "fit") {
+    list = list.filter((r) => r.mac_fit === true);
+    if (!list.length) {
       grid.innerHTML = `<div class="empty">${t(
-        "No ideas yet — the taste profile needs library enrichment. Try again shortly."
+        "No confirmed good fits yet — compatibility data is still loading. Try again shortly."
       )}</div>`;
       return;
     }
-    grid.innerHTML = data.recommendations
-      .map((r) => {
+  }
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty">${t(
+      "No ideas yet — the taste profile needs library enrichment. Try again shortly."
+    )}</div>`;
+    return;
+  }
+  grid.innerHTML = list
+    .map((r) => {
         const mc = r.metacritic
           ? `<span class="mc-badge ${
               r.metacritic >= 75 ? "good" : r.metacritic >= 50 ? "mid" : "bad"
@@ -482,6 +502,7 @@ async function loadDiscover() {
           r.review_positive_pct
         )}</span>
             ${price}
+            <span>${acChip(r) || platformChip(r)}</span>
             <p class="rec-why">${t("Matches {0}", r.matched_genres.map(esc).join(", "))}${
           r.release_year ? ` · ${r.release_year}` : ""
         } · ${t("Steam store ↗")}</p>
@@ -490,11 +511,20 @@ async function loadDiscover() {
         </a>`;
       })
       .join("");
+}
+
+async function loadDiscover() {
+  loadWishlist();
+  const grid = $("#discover-grid");
+  try {
+    const data = await api("/api/discover");
+    discoverData = data.recommendations || [];
+    renderDiscoverCards();
     discoverLoaded = true;
     if (data.prices_pending > 0) {
       toast(t("{0} prices still loading — press ↻ shortly.", data.prices_pending), "ok");
     }
-    loadDeals(data.recommendations);
+    loadDeals(discoverData);
   } catch (err) {
     grid.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
   }

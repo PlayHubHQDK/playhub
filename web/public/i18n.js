@@ -201,6 +201,9 @@ const DICT = {
     "Unknown": "Ukendt",
     "Your Mac": "Din Mac",
     "Discover": "Opdag",
+    "\u2713 Runs well on your Mac": "\u2713 K\u00f8rer godt p\u00e5 din Mac",
+    "No confirmed good fits yet \u2014 compatibility data is still loading. Try again shortly.":
+      "Ingen bekr\u00e6ftede match endnu \u2014 kompatibilitetsdata indl\u00e6ses stadig. Pr\u00f8v igen om lidt.",
     "From your own library": "Fra dit eget bibliotek",
     "Other games on this Mac (/Applications)": "Andre spil p\u00e5 denne Mac (/Applications)",
     "fanless": "uden bl\u00e6ser",

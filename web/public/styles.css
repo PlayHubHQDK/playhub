@@ -807,6 +807,8 @@ button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .hltb-link { color: var(--muted); text-decoration: none; margin-left: auto; }
 .hltb-link:hover { color: var(--bright); }
 
+.discover-filters { margin-bottom: 0.8rem; }
+
 /* Xbox-links i bunden af biblioteket */
 .xbox-links { display: flex; gap: 1.4rem; margin-top: 1.6rem; padding-top: 0.9rem; border-top: 1px dashed var(--border); font-size: 0.78rem; }
 
