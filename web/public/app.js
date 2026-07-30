@@ -1273,6 +1273,8 @@ function renderStats(games) {
       <span class="stat-sub">${esc(MACHINE.device || "")} · ${MACHINE.ram_gb} GB${MACHINE.fanless ? ` · ${t("fanless")}` : ""}</span></div>`
         : ""
     }`;
+  // renderStats erstatter fliserne — gendan backlog-flisen hvis den var i gang
+  if (statsExtrasLoaded) loadBacklog();
 
   const top10 = top.slice(0, 10);
   const maxMin = top10[0]?.playtime_forever_min || 1;
@@ -1546,9 +1548,43 @@ $$(".tab").forEach((t2) =>
       statsExtrasLoaded = true;
       loadYearCard();
       loadHunt();
+      loadBacklog();
     }
   })
 );
+
+// Backlog målt i HowLongToBeat-timer. Estimaterne beregnes i en langsom
+// baggrundskø, så flisen opdaterer sig selv indtil alle spil er slået op.
+let backlogTimer = null;
+async function loadBacklog() {
+  try {
+    const b = await api("/api/backlog");
+    let tile = document.getElementById("backlog-tile");
+    if (!tile) {
+      tile = document.createElement("div");
+      tile.id = "backlog-tile";
+      tile.className = "stat-tile";
+      $("#stats-tiles").appendChild(tile);
+    }
+    const est = `${b.estimated_games}/${b.backlog_games}`;
+    tile.innerHTML = `<span class="stat-label">${t("Backlog (HLTB main story)")}</span>
+      <strong>${t("{0} hours", b.total_main_hours.toLocaleString(LOCALE))}</strong>
+      <span class="stat-sub">${t("≈ {0} days", b.days.toLocaleString(LOCALE))} · ${
+        b.pending > 0 ? t("estimating… ({0} games)", est) : t("{0} unplayed games", b.backlog_games)
+      }</span>`;
+    tile.title = (b.heaviest || [])
+      .map((h) => `${h.name}: ${h.main_h} h`)
+      .join("\n");
+    if (b.pending > 0 && !backlogTimer) {
+      backlogTimer = setInterval(loadBacklog, 45_000);
+    } else if (b.pending === 0 && backlogTimer) {
+      clearInterval(backlogTimer);
+      backlogTimer = null;
+    }
+  } catch {
+    /* backlog er pynt — fejl vises ikke */
+  }
+}
 
 function cLine(ctx, x, y, text, color, size, bold) {
   ctx.fillStyle = color;

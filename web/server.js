@@ -53,6 +53,7 @@ import { runDoctor, applyFix } from "./lib/doctor.js";
 import { getWishlist, setTarget, checkPriceAlerts, startPriceAlertWatch } from "./lib/wishlist.js";
 import { getYearReview, getAchievementHunt } from "./lib/yearreview.js";
 import { getMachine, expectation } from "./lib/machine.js";
+import { getBacklog } from "./lib/backlog.js";
 import { getPerfReports, reportsFor } from "./lib/perfdata.js";
 import {
   isConfigured,
@@ -261,6 +262,16 @@ app.get(
   "/api/version",
   wrap(async (req, res) => {
     res.json(await getVersionInfo());
+  })
+);
+
+app.get(
+  "/api/backlog",
+  wrap(async (req, res) => {
+    const data = process.env.STEAM_API_KEY && process.env.STEAM_ID
+      ? await getOwnedGames()
+      : await getLocalLibrary();
+    res.json(getBacklog(data.games));
   })
 );
 

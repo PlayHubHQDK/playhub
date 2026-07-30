@@ -200,6 +200,9 @@ const DICT = {
     "Doesn't work": "Virker ikke",
     "Unknown": "Ukendt",
     "Your Mac": "Din Mac",
+    "Backlog (HLTB main story)": "Backlog (HLTB main story)",
+    "estimating\u2026 ({0} games)": "estimerer\u2026 ({0} spil)",
+    "{0} unplayed games": "{0} uspillede spil",
     "Discover": "Opdag",
     "\u2713 Runs well on your Mac": "\u2713 K\u00f8rer godt p\u00e5 din Mac",
     "No confirmed good fits yet \u2014 compatibility data is still loading. Try again shortly.":
