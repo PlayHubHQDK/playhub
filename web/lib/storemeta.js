@@ -73,8 +73,17 @@ async function fetchDetails(appid) {
   const j = await res.json();
   const d = j?.[appid];
   if (!d?.success || !d.data) return { missing: true };
+  // Minimum-RAM fra systemkravene — det bedste enkelt-signal for hvor
+  // tungt et spil reelt er (genre+årstal gætter alt for groft).
+  const reqText = String(d.data.pc_requirements?.minimum || d.data.mac_requirements?.minimum || "")
+    .replace(/<[^>]+>/g, " ");
+  const reqMatch = reqText.match(/Memory:\s*([\d.]+)\s*(GB|MB)/i) || reqText.match(/([\d.]+)\s*GB\s*RAM/i);
+  const pc_req_ram_gb = reqMatch
+    ? Math.round(Number(reqMatch[1]) / (String(reqMatch[2] || "GB").toUpperCase() === "MB" ? 1024 : 1) * 10) / 10
+    : null;
   return {
     name: d.data.name || null,
+    pc_req_ram_gb,
     mac_native: Boolean(d.data.platforms?.mac),
     metacritic: d.data.metacritic?.score ?? null,
     metacritic_url: d.data.metacritic?.url || null,
@@ -128,7 +137,8 @@ async function runQueue() {
         (e.details.missing ||
           (e.details.mac_native !== undefined &&
             e.details.name !== undefined &&
-            e.details.controller_support !== undefined))
+            e.details.controller_support !== undefined &&
+            e.details.pc_req_ram_gb !== undefined))
       ) {
         status.details_done++;
         continue;

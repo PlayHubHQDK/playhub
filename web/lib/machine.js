@@ -60,11 +60,17 @@ export async function getMachine() {
 export function gameWeight(g) {
   const genres = (g.genres || []).map((s) => String(s).toLowerCase());
   if (genres.includes("indie") || genres.includes("casual")) return 0;
+  // Systemkrav som signal: lavt minimum-RAM frikender lette spil (fx 2D
+  // managerspil), højt dømmer tunge. Mellemkrav (5-11 GB) siger ikke nok —
+  // minimumskrav er ofte lave selv for tunge 3D-spil — så dér afgør årstal.
   const y = g.release_year || null;
-  if (!y) return 1;
-  if (y >= 2020) return 2;
-  if (y >= 2015) return 1;
-  return 0;
+  const yearWeight = !y ? 1 : y >= 2020 ? 2 : y >= 2015 ? 1 : 0;
+  if (g.pc_req_ram_gb != null) {
+    if (g.pc_req_ram_gb <= 4) return 0;
+    if (g.pc_req_ram_gb >= 12) return 2;
+    return Math.max(1, yearWeight);
+  }
+  return yearWeight;
 }
 
 // -> { level: easy|good|heavy|edge, notes } eller null hvis vi ikke ved nok.

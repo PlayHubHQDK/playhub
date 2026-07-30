@@ -369,7 +369,12 @@ app.get(
       g.controller_support = meta?.controller_support ?? null; // "full" | "partial" | null
       // Ydelse på DENNE Mac: kalibreret forventning + egne beviser + community
       g.perf_expectation = expectation(
-        { ...g, genres: meta?.genres, release_year: meta?.release_year },
+        {
+          ...g,
+          genres: meta?.genres,
+          release_year: meta?.release_year,
+          pc_req_ram_gb: meta?.pc_req_ram_gb ?? null,
+        },
         mac
       );
       g.proven_on_this_mac = Boolean(
