@@ -134,20 +134,27 @@ export async function getAchievements({ appid, steamId } = {}) {
     });
   } catch (err) {
     // Steam returns non-200 for games without stats / private profiles.
+    // "Requested app has no stats" is a normal case, not an error worth showing.
+    const msg = String(err.message || err);
     return {
       appid,
       success: false,
-      error: String(err.message || err),
+      no_stats: /has no stats/i.test(msg),
+      error: /has no stats/i.test(msg) ? null : msg,
       achievements: [],
     };
   }
 
   const resp = data?.playerstats;
   if (!resp || resp.success === false) {
+    const msg = resp?.error || null;
     return {
       appid,
       success: false,
-      error: resp?.error || "No achievement data (game may have no achievements or profile is private).",
+      no_stats: /has no stats/i.test(msg || ""),
+      error: /has no stats/i.test(msg || "")
+        ? null
+        : msg || "No achievement data (game may have no achievements or profile is private).",
       achievements: [],
     };
   }
