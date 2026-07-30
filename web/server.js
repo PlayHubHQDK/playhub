@@ -372,6 +372,14 @@ app.get(
   })
 );
 
+// Viste stier skal ikke afsløre brugernavnet (fx i screenshots) — forkort
+// hjemmemappen til ~ i alt hvad UI'et viser. Kun til visning; handlinger
+// bruger bottle-/backup-navne, aldrig disse strenge.
+function tidyPaths(value) {
+  const home = os.homedir();
+  return JSON.parse(JSON.stringify(value).replaceAll(home, "~"));
+}
+
 app.get(
   "/api/crossover/bottles",
   wrap(async (req, res) => {
@@ -380,13 +388,13 @@ app.get(
       (s, b) => s + b.caches.reduce((x, c) => x + c.size_bytes, 0),
       0
     );
-    res.json({
+    res.json(tidyPaths({
       ...data,
       crossover_root: CROSSOVER_ROOT,
       autobackup: getAutoBackupStatus(),
       caches_total_bytes: cachesTotal,
       backups_total_bytes: await backupsTotalBytes(),
-    });
+    }));
   })
 );
 
