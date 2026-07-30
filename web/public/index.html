@@ -17,12 +17,9 @@
       </div>
       <nav class="tabs">
         <button class="tab active" data-target="library" data-i18n>Steam Library</button>
-        <button class="tab" data-target="native" data-i18n>On This Mac</button>
         <button class="tab" data-target="crossover" data-i18n>CrossOver Tools</button>
         <button class="tab" data-target="stats" data-i18n>Stats</button>
-        <button class="tab" data-target="recs" data-i18n>For You</button>
-        <button class="tab" data-target="discover" data-i18n>Buy Ideas</button>
-        <button class="tab" data-target="xbox" data-i18n>Xbox</button>
+        <button class="tab" data-target="discover" data-i18n>Discover</button>
       </nav>
       <select id="lang-select" class="lang-select" title="Language"></select>
     </header>
@@ -50,18 +47,13 @@
         <div id="library-grid" class="grid covers">
           <div class="loading" data-i18n>Fetching achievements…</div>
         </div>
-      </section>
-
-      <!-- NATIVE MAC GAMES -->
-      <section id="native" class="panel">
-        <div class="panel-head"><h2 data-i18n>Games on this Mac</h2></div>
-        <h3 class="subhead" data-i18n>Installed via Steam</h3>
-        <div id="native-steam" class="grid cards">
-          <div class="loading">…</div>
-        </div>
-        <h3 class="subhead" data-i18n>Apps in /Applications (game category)</h3>
+        <h3 class="subhead" data-i18n>Other games on this Mac (/Applications)</h3>
         <div id="native-apps" class="grid cards">
           <div class="loading">…</div>
+        </div>
+        <div class="xbox-links">
+          <a href="https://www.xbox.com/play" target="_blank" rel="noopener">☁️ Xbox Cloud Gaming ↗</a>
+          <a href="https://www.xbox.com/play/remote-play" target="_blank" rel="noopener">🎮 Xbox Remote Play ↗</a>
         </div>
       </section>
 
@@ -108,47 +100,22 @@
         </details>
       </section>
 
-      <!-- FOR YOU -->
-      <section id="recs" class="panel">
+      <!-- DISCOVER: anbefalinger fra eget bibliotek + ønskeliste + købsideer -->
+      <section id="discover" class="panel">
         <div class="panel-head">
-          <h2 data-i18n>Recommendations from your own library</h2>
+          <h2 data-i18n>Discover</h2>
           <button id="recs-reload" class="btn" data-i18n>↻ Refresh</button>
         </div>
+        <h3 class="subhead" data-i18n>From your own library</h3>
         <div id="recs-status" class="autobackup-status" hidden></div>
         <div id="recs-profile" class="recs-profile"></div>
         <div id="recs-grid" class="grid cards recs-grid">
           <div class="loading" data-i18n>Computing recommendations…</div>
         </div>
-      </section>
-
-      <!-- BUY IDEAS -->
-      <section id="discover" class="panel">
-        <div class="panel-head">
-          <h2 data-i18n>Buy ideas — games you don't own yet</h2>
-          <button id="discover-reload" class="btn" data-i18n>↻ Refresh</button>
-        </div>
+        <h3 class="subhead" data-i18n>Buy ideas — games you don't own yet</h3>
         <p class="discover-note" data-i18n>Popular, well-reviewed games matched to your taste profile. Prices load progressively (Steam bills in € in Denmark) — press ↻ if some are missing.</p>
         <div id="discover-grid" class="grid cards recs-grid">
           <div class="loading" data-i18n>Finding buy ideas… (first time takes ~15 s)</div>
-        </div>
-      </section>
-
-      <!-- XBOX -->
-      <section id="xbox" class="panel">
-        <div class="panel-head"><h2>Xbox</h2></div>
-        <div class="grid cards xbox-cards">
-          <a class="xbox-card" href="https://www.xbox.com/play" target="_blank" rel="noopener">
-            <div class="xbox-icon">☁️</div>
-            <h3>Xbox Cloud Gaming</h3>
-            <p data-i18n>Stream Game Pass games directly in the browser.</p>
-            <span class="go">xbox.com/play →</span>
-          </a>
-          <a class="xbox-card" href="https://www.xbox.com/play/remote-play" target="_blank" rel="noopener">
-            <div class="xbox-icon">🎮</div>
-            <h3>Xbox Remote Play</h3>
-            <p data-i18n>Remote play from your own Xbox console.</p>
-            <span class="go">Remote Play →</span>
-          </a>
         </div>
       </section>
     </main>

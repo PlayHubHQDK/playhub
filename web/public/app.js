@@ -29,8 +29,10 @@ $$(".tab").forEach((tab) => {
     $$(".panel").forEach((p) => p.classList.remove("active"));
     tab.classList.add("active");
     $("#" + tab.dataset.target).classList.add("active");
-    if (tab.dataset.target === "recs" && !recsLoaded) loadRecommendations();
-    if (tab.dataset.target === "discover" && !discoverLoaded) loadDiscover();
+    if (tab.dataset.target === "discover") {
+      if (!recsLoaded) loadRecommendations();
+      if (!discoverLoaded) loadDiscover();
+    }
   });
 });
 
@@ -227,8 +229,7 @@ function renderLibrary(games) {
           <div class="title">${esc(g.name)}</div>
           <div class="ov-row"><span class="playtime ${zero ? "zero" : ""}">${fmtHours(
         g.playtime_forever_hours
-      )}</span><span>${acChip(g)}${padChip(g)}${platformChip(g)}</span></div>
-          ${cacheChip(g)}
+      )}</span><span>${acChip(g) || platformChip(g)}</span></div>
         </div>
       </div>`;
     })
@@ -252,16 +253,6 @@ function acChip(g) {
     st
   )}">AC:${st.toUpperCase()}</span>`;
 }
-// Controller-badge (Steam appdetails: controller_support "full"/"partial").
-function padChip(g) {
-  if (g.controller_support === "full") {
-    return `<span class="platform-chip pad" title="${t("Full controller support")}">PAD:FULL</span>`;
-  }
-  if (g.controller_support === "partial") {
-    return `<span class="platform-chip pad partial" title="${t("Partial controller support")}">PAD:PART</span>`;
-  }
-  return "";
-}
 function platformChip(g) {
   if (g.mac_native === true) {
     return `<span class="platform-chip native" title="${t("Runs natively on macOS")}">NATIVE</span>`;
@@ -284,19 +275,6 @@ function asciiBar(bytes) {
   const mb = bytes / 1048576;
   const filled = Math.max(1, Math.min(10, Math.round((Math.log10(mb + 1) / 3) * 10)));
   return "[" + "\u2593".repeat(filled) + "\u2591".repeat(10 - filled) + "]";
-}
-function cacheChip(g) {
-  if (g.installed_on !== "crossover") return "";
-  if (g.shader_cache && g.shader_cache.size_bytes > 0) {
-    return `<span class="cache-chip" title="${t(
-      "D3DMetal shader cache: {0} files ({1})",
-      g.shader_cache.file_count,
-      esc(g.shader_cache.exe)
-    )}">CACHE ${asciiBar(g.shader_cache.size_bytes)} ${fmtBytes(g.shader_cache.size_bytes)}</span>`;
-  }
-  return `<span class="cache-chip cold" title="${t(
-    "No D3DMetal cache yet — first launch compiles shaders"
-  )}">CACHE ${asciiBar(0)} \u2014</span>`;
 }
 
 $$(".filter-chip").forEach((chip) => {
@@ -395,7 +373,10 @@ function reviewClass(pct) {
   return "neg";
 }
 
-$("#recs-reload").addEventListener("click", loadRecommendations);
+$("#recs-reload").addEventListener("click", () => {
+  loadRecommendations();
+  loadDiscover();
+});
 $("#recs-grid").addEventListener("click", (e) => {
   const card = e.target.closest(".rec-card[data-appid]");
   if (card) openAchievements(Number(card.dataset.appid), card.dataset.name);
@@ -568,7 +549,7 @@ async function loadDeals(recs) {
     /* price comparison is optional */
   }
 }
-$("#discover-reload").addEventListener("click", loadDiscover);
+
 
 // --- HowLongToBeat (fylder HLTB-rækken i detalje-visningen) ---
 let hltbRequestId = 0;
@@ -930,36 +911,10 @@ $("#library").addEventListener("click", async (e) => {
 async function loadNative() {
   try {
     const data = await api("/api/native-games");
-    renderSteamInstalled(data.steam_installed || []);
     renderApps(data.applications || []);
   } catch (err) {
-    $("#native-steam").innerHTML = `<div class="empty">${esc(err.message)}</div>`;
-    $("#native-apps").innerHTML = "";
+    $("#native-apps").innerHTML = `<div class="empty">${esc(err.message)}</div>`;
   }
-}
-
-function renderSteamInstalled(games) {
-  const el = $("#native-steam");
-  if (!games.length) {
-    el.innerHTML = `<div class="empty">${t("No Steam games installed locally.")}</div>`;
-    return;
-  }
-  el.innerHTML = games
-    .map(
-      (g) => `
-      <div class="card">
-        <img class="thumb" loading="lazy" src="${g.header_image}"
-             onerror="this.style.display='none'" alt="" />
-        <div class="info">
-          <h4>${esc(g.name)}</h4>
-          <p>${g.size_bytes ? fmtBytes(g.size_bytes) : "—"}</p>
-          <span class="tag ${g.installed ? "installed" : "not-installed"}">${
-        g.installed ? t("installed") : t("not on disk")
-      }</span>
-        </div>
-      </div>`
-    )
-    .join("");
 }
 
 function renderApps(apps) {
@@ -1676,14 +1631,17 @@ let MACHINE = null;
   loadNative();
   loadCrossover();
   checkForUpdate();
-  // Deep-link til fane via #hash (fx /#crossover)
+  // Deep-link til fane via #hash (fx /#crossover). Gamle fane-navne mappes.
+  const HASH_ALIAS = { native: "library", recs: "discover", xbox: "library" };
+  const resolveTab = (h) =>
+    document.querySelector(`.tab[data-target="${HASH_ALIAS[h] || h}"]`);
   const hashTab = location.hash.slice(1);
   if (hashTab) {
-    const tab = document.querySelector(`.tab[data-target="${hashTab}"]`);
+    const tab = resolveTab(hashTab);
     if (tab) tab.click();
   }
   window.addEventListener("hashchange", () => {
-    const t2 = document.querySelector(`.tab[data-target="${location.hash.slice(1)}"]`);
+    const t2 = resolveTab(location.hash.slice(1));
     if (t2) t2.click();
   });
 })();
