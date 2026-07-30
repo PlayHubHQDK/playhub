@@ -54,6 +54,8 @@ import { getWishlist, setTarget, checkPriceAlerts, startPriceAlertWatch } from "
 import { getYearReview, getAchievementHunt } from "./lib/yearreview.js";
 import { getMachine, expectation } from "./lib/machine.js";
 import { getBacklog } from "./lib/backlog.js";
+import { tonightPicks } from "./lib/tonight.js";
+import { startWeeklySummary, weeklyPreview } from "./lib/weekly.js";
 import { getPerfReports, reportsFor } from "./lib/perfdata.js";
 import {
   isConfigured,
@@ -272,6 +274,37 @@ app.get(
       ? await getOwnedGames()
       : await getLocalLibrary();
     res.json(getBacklog(data.games));
+  })
+);
+
+app.get(
+  "/api/tonight",
+  wrap(async (req, res) => {
+    const minutes = Math.max(15, Math.min(600, Number(req.query.minutes) || 90));
+    const data = process.env.STEAM_API_KEY && process.env.STEAM_ID
+      ? await getOwnedGames()
+      : await getLocalLibrary();
+    // installed_on/bottle beriges kun i /api/steam/library — slå op her også
+    const xoMap = new Map();
+    try {
+      for (const g of await getCrossoverInstalledGames()) xoMap.set(g.appid, g.bottle);
+      const steamSet = new Set((await getSteamInstalledGames()).filter((g) => g.installed).map((g) => g.appid));
+      for (const g of data.games) {
+        if (steamSet.has(g.appid)) g.installed_on = "mac";
+        else if (xoMap.has(g.appid)) {
+          g.installed_on = "crossover";
+          g.bottle = xoMap.get(g.appid);
+        }
+      }
+    } catch {}
+    res.json(tonightPicks(data.games, minutes));
+  })
+);
+
+app.get(
+  "/api/weekly",
+  wrap(async (req, res) => {
+    res.json(await weeklyPreview());
   })
 );
 
@@ -686,6 +719,7 @@ const server = app.listen(PORT, "127.0.0.1", () => {
   console.log(`PlayHub running at http://127.0.0.1:${PORT}`);
   startAutoBackup();
   startPriceAlertWatch();
+  startWeeklySummary();
 });
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {

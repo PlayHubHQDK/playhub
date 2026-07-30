@@ -187,6 +187,9 @@ function renderRecent(games) {
     .join("");
 }
 
+// Ting der støjer i tal og anbefalinger: demoer, soundtracks, servere m.m.
+const JUNK_RE = /\b(demo|soundtrack|ost|beta|playtest|dedicated server|sdk|benchmark|trailer|artbook|dlc)\b/i;
+
 function renderLibrary(games) {
   const grid = $("#library-grid");
   if (libraryFilter === "installed") {
@@ -197,6 +200,8 @@ function renderLibrary(games) {
     games = games.filter((g) => g.mac_native === false);
   } else if (libraryFilter === "controller") {
     games = games.filter((g) => g.controller_support === "full");
+  } else if (libraryFilter === "junk") {
+    games = games.filter((g) => JUNK_RE.test(g.name));
   }
   if (!games.length) {
     grid.innerHTML = `<div class="empty">${t("No games match.")}</div>`;
@@ -899,6 +904,60 @@ async function openAchievements(appid, name) {
         : "");
   } catch (err) {
     $("#ach-body").innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+// --- "Hvad skal jeg spille i aften?" ---
+const TONIGHT_REASON = {
+  comfort: "Your current game",
+  quick: "Reliable fun",
+  backlog: "Never started — tonight?",
+};
+$("#tonight-btn").addEventListener("click", () => {
+  const box = $("#tonight-box");
+  box.hidden = !box.hidden;
+  if (!box.hidden && !$("#tonight-grid").children.length) loadTonight(120);
+});
+$$("#tonight-box [data-mins]").forEach((chip) =>
+  chip.addEventListener("click", () => {
+    $$("#tonight-box [data-mins]").forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+    loadTonight(Number(chip.dataset.mins));
+  })
+);
+async function loadTonight(minutes) {
+  const grid = $("#tonight-grid");
+  grid.innerHTML = `<div class="loading">…</div>`;
+  try {
+    const d = await api(`/api/tonight?minutes=${minutes}`);
+    if (!d.picks.length) {
+      grid.innerHTML = `<div class="empty">${t("No suggestions — play something first!")}</div>`;
+      return;
+    }
+    grid.innerHTML = d.picks
+      .map(
+        (p) => `
+      <div class="card tonight-card" data-appid="${p.appid}" data-name="${esc(p.name)}">
+        <img class="thumb" loading="lazy" src="${p.header_image}" onerror="this.style.display='none'" alt="" />
+        <div class="info">
+          <span class="tonight-reason">${t(TONIGHT_REASON[p.reason] || "")}</span>
+          <h4>${esc(p.name)}</h4>
+          <p>${fmtHours(p.playtime_forever_hours || 0)}${
+          p.main_h ? ` · HLTB ${p.main_h} h` : ""
+        }${p.installed_on ? "" : ` · ${t("not installed")}`}</p>
+          ${
+            p.installed_on
+              ? `<button class="play-btn tonight-play" data-appid="${p.appid}" data-target="${p.installed_on}" data-bottle="${esc(
+                  p.bottle || ""
+                )}">▶ ${t("Play")}</button>`
+              : ""
+          }
+        </div>
+      </div>`
+      )
+      .join("");
+  } catch (err) {
+    grid.innerHTML = `<div class="empty">${esc(t(err.message))}</div>`;
   }
 }
 

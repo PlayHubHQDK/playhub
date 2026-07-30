@@ -133,3 +133,9 @@ export async function hltbLookup(name) {
   saveCache().catch(() => {});
   return data;
 }
+
+// Rent cache-opslag — rører aldrig netværket (bruges af tonight-picks).
+export function hltbCached(name) {
+  const hit = cache[norm(name)];
+  return hit ? hit.data : null;
+}

@@ -35,9 +35,20 @@
             <button class="filter-chip" data-filter="native" data-i18n>Mac native</button>
             <button class="filter-chip" data-filter="windows" data-i18n>Needs CrossOver</button>
             <button class="filter-chip" data-filter="controller" data-i18n>🎮 Controller</button>
+            <button class="filter-chip" data-filter="junk" data-i18n>🧹 Junk</button>
+            <button id="tonight-btn" class="btn primary" data-i18n>🎲 Tonight?</button>
             <input id="library-search" type="search" placeholder="Search library…" data-i18n-placeholder />
             <span id="library-count" class="badge">—</span>
           </div>
+        </div>
+        <div id="tonight-box" hidden>
+          <div class="panel-meta tonight-meta">
+            <span class="dim-label" data-i18n>How much time do you have?</span>
+            <button class="filter-chip" data-mins="45">45 min</button>
+            <button class="filter-chip" data-mins="120" data-i18n>2 hours</button>
+            <button class="filter-chip" data-mins="300" data-i18n>Long night</button>
+          </div>
+          <div id="tonight-grid" class="grid cards"></div>
         </div>
         <div id="recent-section" hidden>
           <h3 class="subhead" data-i18n>Recently played (last 2 weeks)</h3>

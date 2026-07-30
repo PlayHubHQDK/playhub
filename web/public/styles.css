@@ -809,6 +809,12 @@ button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .discover-filters { margin-bottom: 0.8rem; }
 
+#tonight-box { border: 1px solid var(--border); padding: 0.9rem; margin-bottom: 1.2rem; }
+.tonight-meta { margin-bottom: 0.7rem; }
+.tonight-reason { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--bright); }
+.tonight-card { position: relative; }
+.tonight-play { position: static; opacity: 1; margin-top: 0.4rem; }
+
 /* Xbox-links i bunden af biblioteket */
 .xbox-links { display: flex; gap: 1.4rem; margin-top: 1.6rem; padding-top: 0.9rem; border-top: 1px dashed var(--border); font-size: 0.78rem; }
 
