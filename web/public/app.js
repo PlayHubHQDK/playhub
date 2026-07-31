@@ -212,7 +212,7 @@ function renderLibrary(games) {
     games = games.filter((g) => g.controller_support === "full");
   }
   if (libraryFilter === "junk") {
-    games = games.filter((g) => g._junk);
+    games = games.filter((g) => g._junk || JUNK_RE.test(g.name));
   } else {
     games = games.filter((g) => !g._junk);
   }
@@ -234,12 +234,19 @@ function renderLibrary(games) {
             g.installed_on
           }" data-bottle="${esc(g.bottle || "")}" title="${t("Start {0}", esc(g.name))}">▶</button>`
         : "";
+      const junkBtn =
+        libraryFilter === "junk"
+          ? `<button class="btn junk-toggle" data-appid="${g.appid}" data-next="${
+              g._junk ? "show" : "hide"
+            }">${g._junk ? t("Show in library again") : t("🧹 Hide")}</button>`
+          : "";
       return `
       <div class="cover ${g.installed_on ? "is-installed" : ""}" data-appid="${
         g.appid
       }" data-name="${esc(g.name)}">
         ${badge}
         ${playBtn}
+        ${junkBtn}
         <div class="fallback">${esc(g.name)}</div>
         <img loading="lazy" src="${g.library_capsule}" alt="" data-appid="${g.appid}"
              data-stage="capsule" onerror="coverError(this, '${g.header_image}')" />
@@ -1004,6 +1011,33 @@ async function loadTonight(minutes) {
 
 // Clicks in the library panel: play buttons + covers (achievements).
 $("#library").addEventListener("click", async (e) => {
+  const jt = e.target.closest(".junk-toggle");
+  if (jt) {
+    e.stopPropagation();
+    const appid = Number(jt.dataset.appid);
+    const next = jt.dataset.next;
+    try {
+      await api("/api/hidden", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appid, state: next }),
+      });
+      hiddenMap[appid] = next;
+      const g = libraryGames.find((x) => x.appid === appid);
+      if (g) g._junk = next === "hide" || (JUNK_RE.test(g.name) && next !== "show");
+      $("#library-count").textContent = `${
+        libraryGames.filter((x) => !x._junk).length
+      } ${t("games")}`;
+      const q = $("#library-search").value.toLowerCase().trim();
+      renderLibrary(
+        q ? libraryGames.filter((x) => x.name.toLowerCase().includes(q)) : libraryGames
+      );
+      renderStats(libraryGames);
+    } catch (err) {
+      toast(t(err.message), "err");
+    }
+    return;
+  }
   const btn = e.target.closest(".play-btn");
   if (!btn) {
     const cover = e.target.closest(".cover[data-appid], .recent-card[data-appid]");
