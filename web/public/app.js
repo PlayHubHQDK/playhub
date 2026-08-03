@@ -692,6 +692,10 @@ async function openAchievements(appid, name) {
         g.crossover_url
           ? ` <a href="${g.crossover_url}" target="_blank" rel="noopener">AGW ↗</a>`
           : ""
+      }${
+        g.crossover_note
+          ? `<br><span class="dim">${t("Why:")} ${esc(g.crossover_note)}</span>`
+          : ""
       }`
     );
   }

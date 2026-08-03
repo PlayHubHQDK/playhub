@@ -406,6 +406,7 @@ app.get(
         if (compat) {
           g.crossover_rating = compat.rating;
           g.crossover_url = compat.url;
+          if (compat.note) g.crossover_note = compat.note;
         }
         const ac = getAnticheat(g.appid, g.name);
         if (ac) g.anticheat = ac;

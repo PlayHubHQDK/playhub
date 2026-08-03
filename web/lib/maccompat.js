@@ -59,6 +59,38 @@ async function agwLookup(pageName) {
   return j?.cargoquery?.[0]?.title || null;
 }
 
+// Forklaringsnote ("hvorfor virker det ikke") fra sidens wikitext.
+// Cargo-tabellen har ikke notes-felterne, så vi parser selve siden.
+function cleanWikiText(s) {
+  return String(s)
+    .replace(/<ref[^>]*>[\s\S]*?<\/ref>/g, "")
+    .replace(/<ref[^>]*\/>/g, "")
+    .replace(/<ref[\s\S]*$/g, "") // uafsluttet ref i slutningen
+    .replace(/\{\{[\s\S]*?\}\}/g, "")
+    .replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
+    .replace(/'{2,}/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 220);
+}
+
+async function fetchNote(pageName) {
+  try {
+    const res = await fetch(
+      `${API}?action=parse&page=${encodeURIComponent(pageName)}&prop=wikitext&format=json`,
+      { headers: { "User-Agent": UA } }
+    );
+    if (!res.ok) return null;
+    const j = await res.json();
+    const text = j?.parse?.wikitext?.["*"] || "";
+    const m = text.match(/\|crossover notes\s*=\s*([^\n]*)/i);
+    const note = m ? cleanWikiText(m[1]) : "";
+    return note || null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchCompat(name) {
   const clean = normName(name);
   // Prøv eksakt navn, dernæst uden kolon-undertitel-varianter.
@@ -69,9 +101,13 @@ async function fetchCompat(name) {
       const hit = await agwLookup(c);
       if (hit) {
         const raw = String(hit.crossover || "unknown").toLowerCase();
+        const rating = TIER[raw] || "unknown";
+        // Kun broken/runs har brug for et "hvorfor" — skån API'et ellers.
+        const note = ["broken", "runs"].includes(rating) ? await fetchNote(hit.page) : null;
         return {
-          rating: TIER[raw] || "unknown",
+          rating,
           raw,
+          note,
           page: hit.page,
           url: `https://www.applegamingwiki.com/wiki/${encodeURIComponent(
             hit.page.replace(/ /g, "_")
@@ -103,7 +139,10 @@ export function enqueueCompat(names) {
     .map(normName)
     .filter((n) => {
       const hit = cache[key(n)];
-      return !hit || now - hit.fetchedAt > TTL;
+      if (!hit || now - hit.fetchedAt > TTL) return true;
+      return (
+        ["broken", "runs"].includes(hit.data?.rating) && hit.data?.note === undefined
+      );
     });
   queue = [...new Set([...queue, ...missing])];
   if (!running && queue.length) runQueue();
