@@ -206,12 +206,17 @@ input[type="search"]:focus { outline: none; border-color: var(--bright); }
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0.6rem;
-  font-size: 0.8rem;
-  font-weight: 700;
+  padding: 0.6rem 0.6rem 3.4rem;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  line-height: 1.5;
   color: var(--muted);
   background: var(--panel);
 }
+/* Uden artwork viser fallback navnet — så skal overlayet ikke gentage det */
+.cover.no-art .overlay .title { display: none; }
 .cover .overlay {
   position: absolute;
   z-index: 2;

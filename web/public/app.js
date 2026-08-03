@@ -145,12 +145,19 @@ window.coverError = function (img, headerUrl) {
       .then((r) => (r.ok ? r.json() : null))
       .then((art) => {
         if (art && art.header_image) img.src = art.header_image;
-        else img.style.display = "none";
+        else {
+          img.style.display = "none";
+          img.closest(".cover")?.classList.add("no-art");
+        }
       })
-      .catch(() => (img.style.display = "none"));
+      .catch(() => {
+        img.style.display = "none";
+        img.closest(".cover")?.classList.add("no-art");
+      });
     return;
   }
   img.style.display = "none";
+  img.closest(".cover")?.classList.add("no-art");
 };
 
 function renderRecent(games) {
@@ -233,7 +240,11 @@ function computeLibraryFlags(games) {
     const ov = hiddenMap[g.appid];
     g._junk = ov === "hide" || (JUNK_RE.test(g.name) && ov !== "show");
     g._old = oldEditions.has(g.appid) && ov !== "show" && ov !== "hide";
-    g._hideGrid = g._junk || g._old;
+    g._broken =
+      g.mac_native === false &&
+      (["Denied", "Broken"].includes(g.anticheat?.status) || g.crossover_rating === "broken") &&
+      ov !== "show";
+    g._hideGrid = g._junk || g._old || g._broken;
   }
 }
 
@@ -256,7 +267,7 @@ function renderLibrary(games) {
   }
   if (libraryFilter === "junk") {
     games = games.filter((g) => g._hideGrid || JUNK_RE.test(g.name));
-  } else {
+  } else if (libraryFilter !== "broken") {
     games = games.filter((g) => !g._hideGrid);
   }
   if (!games.length) {
