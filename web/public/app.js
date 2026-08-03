@@ -210,6 +210,12 @@ function renderLibrary(games) {
     games = games.filter((g) => g.mac_native === false);
   } else if (libraryFilter === "controller") {
     games = games.filter((g) => g.controller_support === "full");
+  } else if (libraryFilter === "broken") {
+    games = games.filter(
+      (g) =>
+        g.mac_native === false &&
+        (["Denied", "Broken"].includes(g.anticheat?.status) || g.crossover_rating === "broken")
+    );
   }
   if (libraryFilter === "junk") {
     games = games.filter((g) => g._junk || JUNK_RE.test(g.name));
