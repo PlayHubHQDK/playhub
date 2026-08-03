@@ -200,6 +200,7 @@ const DICT = {
     "Doesn't work": "Virker ikke",
     "Unknown": "Ukendt",
     "Your Mac": "Din Mac",
+    "\u26d4 Won't work": "\u26d4 Virker ikke",
     "\ud83e\uddf9 Hide": "\ud83e\uddf9 Skjul",
     "Library": "Bibliotek",
     "\ud83e\uddf9 Hide from library": "\ud83e\uddf9 Skjul fra biblioteket",
