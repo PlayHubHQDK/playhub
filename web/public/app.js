@@ -218,6 +218,8 @@ function computeLibraryFlags(games) {
     } else {
       continue;
     }
+    // Varianter (Touch/Mobile) er samme årgangsserie som hovedspillet.
+    base = base.replace(/\b(touch|mobile)\b/g, "").replace(/\s+/g, " ").trim();
     if (!series.has(base)) series.set(base, []);
     series.get(base).push({ g, year });
   }
