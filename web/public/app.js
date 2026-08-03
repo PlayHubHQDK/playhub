@@ -95,12 +95,9 @@ async function loadLibrary() {
     try {
       hiddenMap = await api("/api/hidden");
     } catch {}
-    for (const g of libraryGames) {
-      const ov = hiddenMap[g.appid];
-      g._junk = ov === "hide" || (JUNK_RE.test(g.name) && ov !== "show");
-    }
+    computeLibraryFlags(libraryGames);
     $("#library-count").textContent = `${
-      libraryGames.filter((g) => !g._junk).length
+      libraryGames.filter((g) => !g._hideGrid).length
     } ${t("games")}`;
     if (!libraryGames.length) {
       grid.innerHTML = `<div class="empty">${t(
@@ -200,6 +197,44 @@ function renderRecent(games) {
 const JUNK_RE = /\b(demo|soundtrack|ost|beta|playtest|dedicated server|sdk|benchmark|trailer|artbook|dlc)\b/i;
 let hiddenMap = {};
 
+// Årgangs-serier (FM 2012..FM26, FIFA osv.): ejer man en nyere udgave,
+// skjules de gamle fra biblioteket — men de tæller stadig i statistikken.
+function computeLibraryFlags(games) {
+  const series = new Map();
+  for (const g of games) {
+    const clean = g.name.replace(/[™®©]/g, "").replace(/\s+/g, " ").trim();
+    let year = null;
+    let base = null;
+    // 4-cifret årstal hvor som helst ("FM 2020 Touch"), 2-cifret kun til
+    // sidst ("Football Manager 26" — men ikke "XCOM 2"/"Tropico 6").
+    const m4 = clean.match(/\b((?:19|20)\d{2})\b/);
+    const m2 = clean.match(/^(.+?)\s+(\d{2})$/);
+    if (m4) {
+      year = Number(m4[1]);
+      base = clean.replace(m4[1], "").replace(/\s+/g, " ").trim().toLowerCase();
+    } else if (m2) {
+      year = 2000 + Number(m2[2]);
+      base = m2[1].toLowerCase();
+    } else {
+      continue;
+    }
+    if (!series.has(base)) series.set(base, []);
+    series.get(base).push({ g, year });
+  }
+  const oldEditions = new Set();
+  for (const list of series.values()) {
+    if (list.length < 2) continue;
+    const maxYear = Math.max(...list.map((x) => x.year));
+    for (const x of list) if (x.year < maxYear) oldEditions.add(x.g.appid);
+  }
+  for (const g of games) {
+    const ov = hiddenMap[g.appid];
+    g._junk = ov === "hide" || (JUNK_RE.test(g.name) && ov !== "show");
+    g._old = oldEditions.has(g.appid) && ov !== "show" && ov !== "hide";
+    g._hideGrid = g._junk || g._old;
+  }
+}
+
 function renderLibrary(games) {
   const grid = $("#library-grid");
   if (libraryFilter === "installed") {
@@ -218,9 +253,9 @@ function renderLibrary(games) {
     );
   }
   if (libraryFilter === "junk") {
-    games = games.filter((g) => g._junk || JUNK_RE.test(g.name));
+    games = games.filter((g) => g._hideGrid || JUNK_RE.test(g.name));
   } else {
-    games = games.filter((g) => !g._junk);
+    games = games.filter((g) => !g._hideGrid);
   }
   if (!games.length) {
     grid.innerHTML = `<div class="empty">${t("No games match.")}</div>`;
@@ -243,8 +278,8 @@ function renderLibrary(games) {
       const junkBtn =
         libraryFilter === "junk"
           ? `<button class="btn junk-toggle" data-appid="${g.appid}" data-next="${
-              g._junk ? "show" : "hide"
-            }">${g._junk ? t("Show in library again") : t("🧹 Hide")}</button>`
+              g._hideGrid ? "show" : "hide"
+            }">${g._hideGrid ? t("Show in library again") : t("🧹 Hide")}</button>`
           : "";
       return `
       <div class="cover ${g.installed_on ? "is-installed" : ""}" data-appid="${
@@ -1033,10 +1068,9 @@ $("#library").addEventListener("click", async (e) => {
         body: JSON.stringify({ appid, state: next }),
       });
       hiddenMap[appid] = next;
-      const g = libraryGames.find((x) => x.appid === appid);
-      if (g) g._junk = next === "hide" || (JUNK_RE.test(g.name) && next !== "show");
+      computeLibraryFlags(libraryGames);
       $("#library-count").textContent = `${
-        libraryGames.filter((x) => !x._junk).length
+        libraryGames.filter((x) => !x._hideGrid).length
       } ${t("games")}`;
       const q = $("#library-search").value.toLowerCase().trim();
       renderLibrary(
