@@ -815,13 +815,14 @@ button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .discover-filters { margin-bottom: 0.8rem; }
 
 .junk-toggle {
-  position: absolute;
-  bottom: 0.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  font-size: 0.68rem;
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  font-size: 0.66rem;
+  padding: 0.25rem 0.4rem;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #tonight-box { border: 1px solid var(--border); padding: 0.9rem; margin-bottom: 1.2rem; }

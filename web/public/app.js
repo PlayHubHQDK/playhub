@@ -292,7 +292,7 @@ function renderLibrary(games) {
         libraryFilter === "junk"
           ? `<button class="btn junk-toggle" data-appid="${g.appid}" data-next="${
               g._hideGrid ? "show" : "hide"
-            }">${g._hideGrid ? t("Show in library again") : t("🧹 Hide")}</button>`
+            }">${g._hideGrid ? "↩ " + t("Show again") : t("🧹 Hide")}</button>`
           : "";
       return `
       <div class="cover ${g.installed_on ? "is-installed" : ""}" data-appid="${
@@ -300,7 +300,6 @@ function renderLibrary(games) {
       }" data-name="${esc(g.name)}">
         ${badge}
         ${playBtn}
-        ${junkBtn}
         <div class="fallback">${esc(g.name)}</div>
         <img loading="lazy" src="${g.library_capsule}" alt="" data-appid="${g.appid}"
              data-stage="capsule" onerror="coverError(this, '${g.header_image}')" />
@@ -309,6 +308,7 @@ function renderLibrary(games) {
           <div class="ov-row"><span class="playtime ${zero ? "zero" : ""}">${fmtHours(
         g.playtime_forever_hours
       )}</span><span>${acChip(g) || platformChip(g)}</span></div>
+          ${junkBtn}
         </div>
       </div>`;
     })
