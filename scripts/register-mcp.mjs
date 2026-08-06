@@ -27,13 +27,29 @@ if (fs.existsSync(cfgPath)) {
   fs.copyFileSync(cfgPath, backup);
   cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
 }
+// process.execPath can be a version-pinned Homebrew Cellar path
+// (/opt/homebrew/Cellar/node/26.5.0/bin/node) that BREAKS when brew
+// upgrades node — the old binary loses its dylibs. Prefer the stable
+// opt-symlink, which always points at the current version.
+function stableNodePath() {
+  const exec = process.execPath;
+  const m = exec.match(/^(.*)\/Cellar\/node(?:@\d+)?\/[^/]+\/bin\/node$/);
+  if (m) {
+    for (const candidate of [`${m[1]}/opt/node/bin/node`, `${m[1]}/bin/node`]) {
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  return exec;
+}
+const nodePath = stableNodePath();
+
 cfg.mcpServers = cfg.mcpServers || {};
 cfg.mcpServers[ENTRY_NAME] = {
-  command: process.execPath, // den node der kører dette script
+  command: nodePath,
   args: [serverPath],
 };
 fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + "\n");
 console.log(
-  `[mcp] '${ENTRY_NAME}' registered (${process.execPath} ${serverPath}).\n` +
+  `[mcp] '${ENTRY_NAME}' registered (${nodePath} ${serverPath}).\n` +
     "[mcp] Restart Claude Desktop (Cmd+Q and reopen) to activate."
 );
