@@ -49,18 +49,44 @@ function normName(name) {
 }
 const key = (name) => normName(name).toLowerCase();
 
-async function agwLookup(pageName) {
-  const url = `${API}?action=cargoquery&tables=Compatibility_macOS&fields=_pageName=page,crossover,parallels&where=Compatibility_macOS._pageName=${encodeURIComponent(
-    `"${pageName.replace(/"/g, '\\"')}"`
-  )}&format=json`;
+// AGW lukkede for Cargo-forespørgsler i 2026 ("permissiondenied"), så vi
+// læser {{Compatibility/macOS}}-skabelonen direkte fra sidens wikitext.
+async function fetchWikitext(pageName) {
+  const url = `${API}?action=query&prop=revisions&rvprop=content&rvslots=main&titles=${encodeURIComponent(
+    pageName
+  )}&redirects=1&format=json`;
   const res = await fetch(url, { headers: { "User-Agent": UA } });
   if (!res.ok) throw new Error(`AGW HTTP ${res.status}`);
   const j = await res.json();
-  return j?.cargoquery?.[0]?.title || null;
+  if (j?.error) throw new Error(`AGW ${j.error.code}`);
+  const page = Object.values(j?.query?.pages || {})[0];
+  if (!page || "missing" in page || "invalid" in page) return null;
+  const text = page.revisions?.[0]?.slots?.main?.["*"] || "";
+  return { page: page.title, text };
+}
+
+function templateField(block, field) {
+  const m = block.match(new RegExp(`^\\|\\s*${field}\\s*=\\s*([^\\n]*)`, "mi"));
+  return m ? m[1].trim() : "";
+}
+
+async function agwLookup(pageName) {
+  const wiki = await fetchWikitext(pageName);
+  if (!wiki) return null;
+  const start = wiki.text.indexOf("{{Compatibility/macOS");
+  if (start < 0) return null;
+  // Ingen afgrænsning af skabelonens slutning: noter kan indeholde
+  // fler-linjers ref-skabeloner, så første match efter starten vinder.
+  const block = wiki.text.slice(start);
+  return {
+    page: wiki.page,
+    crossover: (templateField(block, "crossover").match(/^\w*/) || [""])[0],
+    parallels: (templateField(block, "parallels").match(/^\w*/) || [""])[0],
+    crossoverNote: cleanWikiText(templateField(block, "crossover notes")) || null,
+  };
 }
 
 // Forklaringsnote ("hvorfor virker det ikke") fra sidens wikitext.
-// Cargo-tabellen har ikke notes-felterne, så vi parser selve siden.
 function cleanWikiText(s) {
   return String(s)
     .replace(/<ref[^>]*>[\s\S]*?<\/ref>/g, "")
@@ -74,23 +100,6 @@ function cleanWikiText(s) {
     .slice(0, 220);
 }
 
-async function fetchNote(pageName) {
-  try {
-    const res = await fetch(
-      `${API}?action=parse&page=${encodeURIComponent(pageName)}&prop=wikitext&format=json`,
-      { headers: { "User-Agent": UA } }
-    );
-    if (!res.ok) return null;
-    const j = await res.json();
-    const text = j?.parse?.wikitext?.["*"] || "";
-    const m = text.match(/\|crossover notes\s*=\s*([^\n]*)/i);
-    const note = m ? cleanWikiText(m[1]) : "";
-    return note || null;
-  } catch {
-    return null;
-  }
-}
-
 async function fetchCompat(name) {
   const clean = normName(name);
   // Prøv eksakt navn, dernæst uden kolon-undertitel-varianter.
@@ -100,10 +109,10 @@ async function fetchCompat(name) {
     try {
       const hit = await agwLookup(c);
       if (hit) {
-        const raw = String(hit.crossover || "unknown").toLowerCase();
+        const raw = (hit.crossover || "unknown").toLowerCase();
         const rating = TIER[raw] || "unknown";
-        // Kun broken/runs har brug for et "hvorfor" — skån API'et ellers.
-        const note = ["broken", "runs"].includes(rating) ? await fetchNote(hit.page) : null;
+        // Kun broken/runs har brug for et "hvorfor".
+        const note = ["broken", "runs"].includes(rating) ? hit.crossoverNote : null;
         return {
           rating,
           raw,
